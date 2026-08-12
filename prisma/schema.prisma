@@ -1,0 +1,106 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Business {
+  id                    String                 @id @default(uuid())
+  name                  String
+  currency              String                 @default("INR")
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  users                 User[]
+  customers             Customer[]
+  products              Product[]
+  transactions          Transaction[]
+  conversationSessions ConversationSession[]
+}
+
+model User {
+  id                   String                 @id @default(uuid())
+  email                String                 @unique
+  passwordHash         String
+  name                 String
+  role                 String                 @default("OWNER") // OWNER, EMPLOYEE
+  businessId           String
+  business             Business               @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  conversationSessions ConversationSession[]
+}
+
+model Customer {
+  id                 String        @id @default(uuid())
+  name               String
+  phone              String?
+  outstandingBalance Float         @default(0.0)
+  businessId         String
+  business           Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  transactions       Transaction[]
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+}
+
+model Product {
+  id                String            @id @default(uuid())
+  name              String
+  sku               String?
+  price             Float
+  costPrice         Float             @default(0.0)
+  stockQuantity     Float             @default(0.0)
+  lowStockThreshold Float             @default(5.0)
+  businessId        String
+  business          Business          @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  transactionItems  TransactionItem[]
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+}
+
+model Transaction {
+  id           String            @id @default(uuid())
+  type         String            // SALE, PURCHASE, CREDIT (loan given), PAYMENT_RECEIVED (loan settled), EXPENSE, REFUND
+  amount       Float
+  description  String?
+  customerId   String?
+  customer     Customer?         @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  businessId   String
+  business     Business          @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  items        TransactionItem[]
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+}
+
+model TransactionItem {
+  id            String      @id @default(uuid())
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product     @relation(fields: [productId], references: [id], onDelete: Restrict)
+  quantity      Float
+  unitPrice     Float
+}
+
+model ConversationSession {
+  id         String        @id @default(uuid())
+  userId     String
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessId String
+  business   Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  messages   ChatMessage[]
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+}
+
+model ChatMessage {
+  id               String              @id @default(uuid())
+  sessionId        String
+  session          ConversationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role             String              // USER, ASSISTANT
+  content          String
+  toolCallDetails  String?             // JSON string storing details of the tool executed, if any
+  createdAt        DateTime            @default(now())
+}
