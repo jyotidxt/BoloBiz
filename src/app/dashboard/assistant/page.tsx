@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface ChatMessage {
   id: string;
@@ -15,18 +16,16 @@ interface ChatMessage {
 }
 
 export default function AssistantPage() {
+  const { language } = useLanguage();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState("");
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [isRecording, setIsRecording] = useState(false);
-  const [languageMode, setLanguageMode] = useState<"hi-IN" | "en-IN">("hi-IN");
   const [loading, setLoading] = useState(false);
-  const [ttsEnabled, setTtsEnabled] = useState(true);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const recognitionRef = useRef<any>(null);
 
-  // Auto-scroll chat thread
+  // Auto-scroll chat thread to bottom
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -35,86 +34,28 @@ export default function AssistantPage() {
     scrollToBottom();
   }, [messages, loading]);
 
-  // Speech Recognition Setup
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const SpeechRecognition =
-        (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-
-      if (SpeechRecognition) {
-        const rec = new SpeechRecognition();
-        rec.continuous = false;
-        rec.interimResults = false;
-        rec.lang = languageMode;
-
-        rec.onstart = () => {
-          setIsRecording(true);
-        };
-
-        rec.onresult = (event: any) => {
-          const transcript = event.results[0][0].transcript;
-          if (transcript) {
-            setInputText(transcript);
-            handleSendMessage(transcript);
-          }
-        };
-
-        rec.onerror = (event: any) => {
-          console.error("Speech recognition error:", event.error);
-          setIsRecording(false);
-        };
-
-        rec.onend = () => {
-          setIsRecording(false);
-        };
-
-        recognitionRef.current = rec;
-      }
-    }
-  }, [languageMode]);
-
-  // Toggle voice recognition
-  const toggleRecording = () => {
-    if (!recognitionRef.current) {
-      alert("Speech recognition is not supported in this browser. Please use Chrome/Edge or type your message.");
-      return;
-    }
-
-    if (isRecording) {
-      recognitionRef.current.stop();
-    } else {
-      setInputText("");
-      recognitionRef.current.lang = languageMode;
-      recognitionRef.current.start();
-    }
+  // Show a temporary toast notification
+  const triggerToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 4000);
   };
 
-  // Text-To-Speech Synthesis helper
-  const speakText = (text: string) => {
-    if (!ttsEnabled || typeof window === "undefined" || !window.speechSynthesis) return;
-
-    // Cancel any ongoing speaking
-    window.speechSynthesis.cancel();
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    // Find a suitable voice
-    const voices = window.speechSynthesis.getVoices();
-    
-    if (languageMode === "hi-IN") {
-      // Find a Hindi voice
-      const hindiVoice = voices.find((v) => v.lang.includes("hi-") || v.lang.includes("IN"));
-      if (hindiVoice) utterance.voice = hindiVoice;
-    } else {
-      // Find an Indian English or general English voice
-      const engVoice = voices.find((v) => v.lang.includes("en-IN") || v.lang.includes("en-US"));
-      if (engVoice) utterance.voice = engVoice;
-    }
-
-    utterance.rate = 1.0;
-    window.speechSynthesis.speak(utterance);
+  const handleMicClick = () => {
+    const notice = language === "hi"
+      ? "🎙️ आवाज (Voice) इनपुट की सुविधा Phase 3 में आ रही है! कृपया टाइप करके पूछें।"
+      : "🎙️ Voice input features are coming next in Phase 3! Please type your command.";
+    triggerToast(notice);
   };
 
-  // Handle message posting
+  // Reset/Clear Conversation Session
+  const handleClearChat = () => {
+    setMessages([]);
+    setSessionId(null);
+    const notice = language === "hi" ? "चैट का इतिहास साफ़ कर दिया गया है।" : "Chat conversation history cleared.";
+    triggerToast(notice);
+  };
+
+  // Process sending message
   const handleSendMessage = async (textToSend?: string) => {
     const text = textToSend || inputText;
     if (!text.trim() || loading) return;
@@ -147,29 +88,23 @@ export default function AssistantPage() {
 
       setSessionId(data.sessionId);
 
-      let parsedTools = null;
-      if (data.toolExecuted) {
-        parsedTools = data.toolExecuted;
-      }
-
       const assistantMsg: ChatMessage = {
         id: Math.random().toString(),
         role: "ASSISTANT",
         content: data.content,
-        toolCallDetails: parsedTools,
+        toolCallDetails: data.toolExecuted,
         createdAt: new Date(),
       };
 
       setMessages((prev) => [...prev, assistantMsg]);
-      
-      // Proactive Text-To-Speech
-      speakText(data.content);
     } catch (err: any) {
       console.error(err);
       const errorMsg: ChatMessage = {
         id: Math.random().toString(),
         role: "ASSISTANT",
-        content: "मुझसे संपर्क करने में कोई दिक्कत आ रही है। कृपया दोबारा बोलें या इंटरनेट चेक करें। (Failed to connect to BoloBiz)",
+        content: language === "hi"
+          ? "मुझसे संपर्क करने में कोई दिक्कत आ रही है। कृपया इंटरनेट चेक करें। (Failed to connect to BoloBiz)"
+          : "Sorry, I am having trouble connecting. Please check your internet connection.",
         createdAt: new Date(),
       };
       setMessages((prev) => [...prev, errorMsg]);
@@ -178,59 +113,84 @@ export default function AssistantPage() {
     }
   };
 
+  // Helper to handle chip suggestion clicks
+  const handleSuggestionClick = (query: string) => {
+    handleSendMessage(query);
+  };
+
+  // Localized template constants
+  const pageTitle = language === "hi" ? "BoloBiz AI असिस्टेंट" : "BoloBiz AI Assistant";
+  const pageSubtitle = language === "hi" ? "बिज़नेस का हिसाब रखें — बस बोलकर" : "Run your business simply by speaking";
+  const clearChatBtn = language === "hi" ? "चैट साफ़ करें 🗑️" : "Clear Chat 🗑️";
+  const placeholderText = language === "hi" ? "बिज़नेस कमांड लिखें... (जैसे: 'Ramesh ko 500 udhaar diye')" : "Type a business command...";
+  const sendBtnLabel = language === "hi" ? "भेजें" : "Send";
+
+  const suggestions = language === "hi"
+    ? [
+        "आज कितनी sale हुई?",
+        "किसका payment बाकी है?",
+        "Maggi कितनी बची है?",
+        "Ramesh ka balance batao.",
+      ]
+    : [
+        "What is today's sale?",
+        "Who has pending payments?",
+        "How much Maggi is left in stock?",
+        "Add Ramesh as a customer.",
+      ];
+
   return (
     <div style={styles.container} className="animate-fade-in">
+      {/* Toast Alert popup */}
+      {toastMessage && (
+        <div style={styles.toast} className="animate-fade-in">
+          {toastMessage}
+        </div>
+      )}
+
+      {/* Header bar */}
       <div style={styles.headerRow}>
         <div>
-          <h2 style={styles.title}>🎙️ BoloBiz Voice Assistant</h2>
-          <p style={styles.subtitle}>बस बोलकर अपना बिज़नेस चलाएं</p>
+          <h2 style={styles.title}>🎙️ {pageTitle}</h2>
+          <p style={styles.subtitle}>{pageSubtitle}</p>
         </div>
 
-        <div style={styles.controls}>
-          <div style={styles.toggleContainer}>
-            <span style={styles.controlLabel}>Audio Readout 🔊</span>
-            <button
-              onClick={() => setTtsEnabled(!ttsEnabled)}
-              style={ttsEnabled ? styles.toggleOn : styles.toggleOff}
-            >
-              {ttsEnabled ? "ON" : "OFF"}
-            </button>
-          </div>
-
-          <div style={styles.toggleContainer}>
-            <span style={styles.controlLabel}>Primary Language:</span>
-            <button
-              onClick={() => setLanguageMode(languageMode === "hi-IN" ? "en-IN" : "hi-IN")}
-              style={styles.languageToggleBtn}
-            >
-              {languageMode === "hi-IN" ? "🇮🇳 Hindi / Hinglish" : "🇬🇧 English"}
-            </button>
-          </div>
+        <div>
+          <button onClick={handleClearChat} style={styles.clearBtn}>
+            {clearChatBtn}
+          </button>
         </div>
       </div>
 
-      {/* Main chat window container */}
+      {/* Conversation Thread Canvas */}
       <div className="glass-panel" style={styles.chatCard}>
         <div style={styles.chatArea}>
           {messages.length === 0 ? (
             <div style={styles.welcomePrompt}>
-              <div style={styles.micCircleBig} onClick={toggleRecording}>
+              <div style={styles.micCircleBig} onClick={handleMicClick}>
                 🎙️
               </div>
-              <h3>BoloBiz Is Listening</h3>
-              <p style={{ maxWidth: "450px", margin: "0.5rem auto", color: "var(--text-secondary)" }}>
-                Start talking to do actions instantly. The AI will translate your dialect and execute it securely.
+              <h3 style={{ color: "var(--text-primary)" }}>
+                {language === "hi" ? "बिज़नेस का हिसाब बस बोलकर" : "BoloBiz Is Listening"}
+              </h3>
+              <p style={{ maxWidth: "450px", margin: "0.5rem auto", color: "var(--text-secondary)", fontSize: "0.95rem" }}>
+                {language === "hi"
+                  ? "अपनी भाषा में पूछें। नीचे दिए गए किसी भी उदाहरण पर क्लिक करें और देखें कि BoloBiz कैसे काम करता है।"
+                  : "Type naturally in English, Hindi, or Hinglish. E.g. 'Ramesh ko 500 udhaar diye.' Click on any suggestion chip below to test."
+                }
               </p>
+              
+              {/* Suggestion Chips */}
               <div style={styles.suggestions}>
-                <div style={styles.suggestCard} onClick={() => setInputText("Aaj Ramesh ko 500 rupaye udhaar diye")}>
-                  "Aaj Ramesh ko 500 rupaye udhaar diye"
-                </div>
-                <div style={styles.suggestCard} onClick={() => setInputText("aaj ki sale kitni hui?")}>
-                  "Aaj ki sales kitni hui?"
-                </div>
-                <div style={styles.suggestCard} onClick={() => setInputText("nayi item Maggi add karo ₹15 price par")}>
-                  "Nayi item Maggi add karo..."
-                </div>
+                {suggestions.map((sug, idx) => (
+                  <div
+                    key={idx}
+                    style={styles.suggestCard}
+                    onClick={() => handleSuggestionClick(sug)}
+                  >
+                    💬 {sug}
+                  </div>
+                ))}
               </div>
             </div>
           ) : (
@@ -244,48 +204,63 @@ export default function AssistantPage() {
                     {msg.toolCallDetails && (
                       <div style={styles.receiptCard}>
                         <div style={styles.receiptHeader}>
-                          <span>⚡ System Action Executed</span>
+                          <span>⚡ {language === "hi" ? "सिस्टम एक्शन" : "System Action Executed"}</span>
                           <span style={styles.receiptBadge}>
-                            {msg.toolCallDetails.name === "recordTransaction" && "Khata Transaction"}
-                            {msg.toolCallDetails.name === "addCustomer" && "New Customer"}
-                            {msg.toolCallDetails.name === "addProduct" && "New Product"}
-                            {msg.toolCallDetails.name === "updateStock" && "Stock Adjustment"}
-                            {msg.toolCallDetails.name === "getBusinessInsights" && "Database Query"}
+                            {msg.toolCallDetails.name}
                           </span>
                         </div>
                         <div style={styles.receiptBody}>
-                          {msg.toolCallDetails.name === "recordTransaction" && (
+                          {/* Render details based on tool */}
+                          {msg.toolCallDetails.name === "createCustomer" && (
+                            <div><strong>Name:</strong> {msg.toolCallDetails.args.name}</div>
+                          )}
+                          {(msg.toolCallDetails.name === "createSale" ||
+                            msg.toolCallDetails.name === "createCredit" ||
+                            msg.toolCallDetails.name === "recordPayment" ||
+                            msg.toolCallDetails.name === "createExpense") && (
                             <>
-                              <div><strong>Type:</strong> {msg.toolCallDetails.args.type}</div>
                               <div><strong>Amount:</strong> ₹{msg.toolCallDetails.args.amount}</div>
                               {msg.toolCallDetails.args.customerName && (
                                 <div><strong>Customer:</strong> {msg.toolCallDetails.args.customerName}</div>
                               )}
                               {msg.toolCallDetails.result?.outstandingBalance !== undefined && (
-                                <div style={{ color: "var(--accent-cyan)", marginTop: "0.25rem" }}>
-                                  <strong>New Ledger Balance:</strong> ₹{msg.toolCallDetails.result.outstandingBalance}
+                                <div style={{ color: "var(--accent-purple)", marginTop: "0.25rem" }}>
+                                  <strong>New Balance:</strong> ₹{msg.toolCallDetails.result.outstandingBalance}
                                 </div>
                               )}
                             </>
                           )}
-                          {msg.toolCallDetails.name === "addCustomer" && (
-                            <div><strong>Name:</strong> {msg.toolCallDetails.args.name}</div>
-                          )}
-                          {msg.toolCallDetails.name === "addProduct" && (
-                            <>
-                              <div><strong>Product:</strong> {msg.toolCallDetails.args.name}</div>
-                              <div><strong>Price:</strong> ₹{msg.toolCallDetails.args.price}</div>
-                            </>
-                          )}
-                          {msg.toolCallDetails.name === "updateStock" && (
+                          {msg.toolCallDetails.name === "addInventory" && (
                             <>
                               <div><strong>Product:</strong> {msg.toolCallDetails.args.productName}</div>
-                              <div><strong>Adjustment:</strong> {msg.toolCallDetails.args.quantityAdjustment > 0 ? "+" : ""}{msg.toolCallDetails.args.quantityAdjustment}</div>
+                              <div><strong>Adjustment:</strong> {msg.toolCallDetails.args.quantity}</div>
+                              {msg.toolCallDetails.result?.stockQuantity !== undefined && (
+                                <div><strong>Updated Quantity:</strong> {msg.toolCallDetails.result.stockQuantity}</div>
+                              )}
                             </>
                           )}
-                          {msg.toolCallDetails.name === "getBusinessInsights" && (
+                          {msg.toolCallDetails.name === "getInventory" && (
+                            <div>
+                              <strong>Product:</strong> {msg.toolCallDetails.args.productName || "All Catalog"}
+                              {msg.toolCallDetails.result?.stock !== undefined && (
+                                <div><strong>Stock Level:</strong> {msg.toolCallDetails.result.stock} units</div>
+                              )}
+                            </div>
+                          )}
+                          {msg.toolCallDetails.name === "getCustomerBalance" && (
+                            <div>
+                              <strong>Customer:</strong> {msg.toolCallDetails.args.customerName}
+                              {msg.toolCallDetails.result?.balance !== undefined && (
+                                <div style={{ color: "var(--status-danger)", fontWeight: 700 }}>
+                                  <strong>Outstanding:</strong> ₹{msg.toolCallDetails.result.balance}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          {/* Generic summary message fallback */}
+                          {!["createCustomer", "createSale", "createCredit", "recordPayment", "createExpense", "addInventory", "getInventory", "getCustomerBalance"].includes(msg.toolCallDetails.name) && (
                             <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>
-                              Queried database metrics securely.
+                              Queried actual database records.
                             </div>
                           )}
                         </div>
@@ -311,26 +286,31 @@ export default function AssistantPage() {
         {/* Input Bar */}
         <div style={styles.inputContainer}>
           <button
-            onClick={toggleRecording}
-            style={isRecording ? styles.micBtnActive : styles.micBtn}
-            className={isRecording ? "animate-pulse-mic" : ""}
+            onClick={handleMicClick}
+            style={styles.micBtn}
+            aria-label="Activate voice (disabled)"
           >
-            {isRecording ? "🔴" : "🎙️"}
+            🎙️
           </button>
 
           <input
             type="text"
-            placeholder={isRecording ? "Listening..." : "Type a command or speak..."}
+            placeholder={placeholderText}
             style={styles.input}
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter") handleSendMessage();
             }}
+            disabled={loading}
           />
 
-          <button onClick={() => handleSendMessage()} style={styles.sendBtn}>
-            Send
+          <button
+            onClick={() => handleSendMessage()}
+            style={styles.sendBtn}
+            disabled={loading || !inputText.trim()}
+          >
+            {sendBtnLabel}
           </button>
         </div>
       </div>
@@ -344,6 +324,20 @@ const styles = {
     flexDirection: "column" as const,
     height: "calc(100vh - 120px)",
   },
+  toast: {
+    position: "fixed" as const,
+    bottom: "100px",
+    left: "50%",
+    transform: "translateX(-50%)",
+    background: "#1e1b4b",
+    color: "#ffffff",
+    padding: "0.75rem 1.5rem",
+    borderRadius: "30px",
+    boxShadow: "0 10px 25px rgba(0,0,0,0.15)",
+    fontSize: "0.9rem",
+    fontWeight: 600,
+    zIndex: 100,
+  },
   headerRow: {
     display: "flex",
     justifyContent: "space-between",
@@ -355,54 +349,27 @@ const styles = {
   title: {
     fontSize: "1.5rem",
     fontWeight: 800,
-    color: "#fff",
+    color: "var(--text-primary)",
   },
   subtitle: {
     fontSize: "0.9rem",
     color: "var(--text-secondary)",
   },
-  controls: {
-    display: "flex",
-    gap: "1.5rem",
-    alignItems: "center",
-  },
-  toggleContainer: {
-    display: "flex",
-    alignItems: "center",
-    gap: "0.5rem",
-  },
-  controlLabel: {
-    fontSize: "0.8rem",
-    color: "var(--text-secondary)",
-    fontWeight: 500,
-  },
-  toggleOn: {
-    padding: "0.3rem 0.75rem",
-    borderRadius: "12px",
-    background: "var(--status-success)",
-    color: "#fff",
-    fontSize: "0.75rem",
-    fontWeight: 700,
-    cursor: "pointer",
-  },
-  toggleOff: {
-    padding: "0.3rem 0.75rem",
-    borderRadius: "12px",
-    background: "var(--bg-tertiary)",
-    color: "var(--text-secondary)",
-    fontSize: "0.75rem",
-    fontWeight: 700,
-    cursor: "pointer",
-  },
-  languageToggleBtn: {
-    background: "rgba(255, 255, 255, 0.05)",
-    border: "1px solid rgba(255, 255, 255, 0.08)",
-    padding: "0.4rem 1rem",
+  clearBtn: {
+    background: "#ffffff",
+    border: "1px solid rgba(0, 0, 0, 0.08)",
+    padding: "0.5rem 1rem",
     borderRadius: "15px",
-    color: "#fff",
     fontSize: "0.85rem",
-    fontWeight: 500,
+    fontWeight: 600,
+    color: "var(--text-secondary)",
     cursor: "pointer",
+    boxShadow: "0 2px 6px rgba(0,0,0,0.02)",
+    transition: "all 0.2s ease",
+    ":hover": {
+      background: "#f9fafb",
+      color: "var(--text-primary)",
+    },
   },
   chatCard: {
     flex: 1,
@@ -410,6 +377,10 @@ const styles = {
     flexDirection: "column" as const,
     padding: "1.5rem",
     overflow: "hidden",
+    background: "#ffffff",
+    border: "1px solid rgba(0, 0, 0, 0.05)",
+    boxShadow: "0 10px 40px rgba(0, 0, 0, 0.03)",
+    borderRadius: "20px",
   },
   chatArea: {
     flex: 1,
@@ -427,20 +398,21 @@ const styles = {
     padding: "2rem",
   },
   micCircleBig: {
-    width: "90px",
-    height: "90px",
+    width: "80px",
+    height: "80px",
     borderRadius: "50%",
-    background: "linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-indigo) 100%)",
+    background: "var(--accent-gradient)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "2.5rem",
+    fontSize: "2.25rem",
     cursor: "pointer",
-    boxShadow: "0 10px 30px rgba(6, 182, 212, 0.3)",
+    boxShadow: "0 6px 20px rgba(219, 39, 119, 0.25)",
     marginBottom: "1.5rem",
     transition: "transform 0.2s ease",
+    color: "#fff",
     ":hover": {
-      transform: "scale(1.05)",
+      transform: "scale(1.03)",
     },
   },
   suggestions: {
@@ -451,18 +423,19 @@ const styles = {
     justifyContent: "center",
   },
   suggestCard: {
-    background: "rgba(255,255,255,0.02)",
-    border: "1px solid rgba(255,255,255,0.06)",
-    padding: "0.75rem 1.25rem",
+    background: "#f9fafb",
+    border: "1px solid rgba(0, 0, 0, 0.06)",
+    padding: "0.65rem 1.25rem",
     borderRadius: "20px",
     fontSize: "0.85rem",
     color: "var(--text-secondary)",
     cursor: "pointer",
+    boxShadow: "0 2px 6px rgba(0,0,0,0.01)",
     transition: "all 0.2s ease",
     ":hover": {
-      borderColor: "var(--accent-cyan)",
-      background: "rgba(6, 182, 212, 0.05)",
-      color: "#fff",
+      borderColor: "var(--accent-purple)",
+      background: "rgba(124, 58, 237, 0.05)",
+      color: "var(--accent-purple)",
     },
   },
   messagesList: {
@@ -476,11 +449,13 @@ const styles = {
   },
   userBubble: {
     maxWidth: "70%",
-    padding: "1rem 1.25rem",
-    background: "linear-gradient(135deg, var(--accent-indigo) 0%, var(--accent-purple) 100%)",
+    padding: "0.85rem 1.25rem",
+    background: "var(--accent-gradient)",
     borderRadius: "20px 20px 4px 20px",
     color: "#fff",
-    boxShadow: "0 4px 15px rgba(99, 102, 241, 0.15)",
+    boxShadow: "0 4px 15px rgba(219, 39, 119, 0.15)",
+    fontSize: "0.95rem",
+    textAlign: "left" as const,
   },
   assistantRow: {
     display: "flex",
@@ -488,36 +463,40 @@ const styles = {
   },
   assistantBubble: {
     maxWidth: "70%",
-    padding: "1rem 1.25rem",
-    background: "rgba(255,255,255,0.03)",
-    border: "1px solid rgba(255,255,255,0.06)",
+    padding: "0.85rem 1.25rem",
+    background: "#f3f4f6",
+    border: "1px solid rgba(0,0,0,0.04)",
     borderRadius: "20px 20px 20px 4px",
-    color: "#fff",
+    color: "var(--text-primary)",
+    fontSize: "0.95rem",
+    textAlign: "left" as const,
   },
   receiptCard: {
     marginTop: "0.75rem",
-    background: "rgba(10, 15, 29, 0.8)",
-    border: "1px solid rgba(6, 182, 212, 0.2)",
+    background: "#ffffff",
+    border: "1px solid rgba(0,0,0,0.08)",
     borderRadius: "10px",
     padding: "0.75rem 1rem",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.02)",
+    color: "var(--text-primary)",
   },
   receiptHeader: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
     fontSize: "0.75rem",
-    color: "var(--text-secondary)",
-    borderBottom: "1px solid rgba(255, 255, 255, 0.05)",
+    color: "var(--text-muted)",
+    borderBottom: "1px solid rgba(0, 0, 0, 0.05)",
     paddingBottom: "0.5rem",
     marginBottom: "0.5rem",
   },
   receiptBadge: {
-    background: "rgba(6, 182, 212, 0.12)",
-    color: "var(--accent-cyan)",
+    background: "rgba(124, 58, 237, 0.08)",
+    color: "var(--accent-purple)",
     padding: "0.15rem 0.4rem",
     borderRadius: "4px",
     fontSize: "0.7rem",
-    fontWeight: 600,
+    fontWeight: 700,
   },
   receiptBody: {
     fontSize: "0.85rem",
@@ -535,8 +514,8 @@ const styles = {
     display: "flex",
     gap: "0.75rem",
     alignItems: "center",
-    background: "rgba(255, 255, 255, 0.02)",
-    border: "1px solid rgba(255, 255, 255, 0.06)",
+    background: "#f9fafb",
+    border: "1px solid rgba(0, 0, 0, 0.06)",
     padding: "0.5rem",
     borderRadius: "30px",
   },
@@ -544,41 +523,43 @@ const styles = {
     width: "48px",
     height: "48px",
     borderRadius: "50%",
-    background: "rgba(255,255,255,0.05)",
+    background: "#ffffff",
+    border: "1px solid rgba(0,0,0,0.05)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     fontSize: "1.25rem",
     cursor: "pointer",
+    boxShadow: "0 2px 6px rgba(0,0,0,0.02)",
     transition: "all 0.2s ease",
-  },
-  micBtnActive: {
-    width: "48px",
-    height: "48px",
-    borderRadius: "50%",
-    background: "var(--status-danger)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "1.25rem",
-    cursor: "pointer",
+    ":hover": {
+      background: "#f3f4f6",
+    },
   },
   input: {
     flex: 1,
     padding: "0.75rem 1rem",
-    color: "#fff",
+    color: "var(--text-primary)",
     fontSize: "0.95rem",
+    background: "transparent",
   },
   sendBtn: {
-    background: "var(--accent-cyan)",
+    background: "var(--accent-purple)",
     color: "#fff",
-    fontWeight: 600,
-    padding: "0.6rem 1.5rem",
+    fontWeight: 700,
+    padding: "0.65rem 1.5rem",
     borderRadius: "20px",
     cursor: "pointer",
+    boxShadow: "0 4px 10px rgba(124, 58, 237, 0.2)",
     transition: "all 0.2s ease",
     ":hover": {
-      background: "var(--accent-cyan-hover)",
+      background: "#6d28d9",
+    },
+    ":disabled": {
+      background: "#e5e7eb",
+      color: "var(--text-muted)",
+      boxShadow: "none",
+      cursor: "default",
     },
   },
 };
