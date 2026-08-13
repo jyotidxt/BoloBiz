@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { LanguageProvider } from "@/context/LanguageContext";
+import { ClerkProvider } from "@clerk/nextjs";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export const metadata: Metadata = {
   title: "BoloBiz - AI Business Assistant | बस बोलकर बिज़नेस चलाओ",
@@ -15,12 +17,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body>
-        <LanguageProvider>
-          <main id="app-root">{children}</main>
-        </LanguageProvider>
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en">
+        <body>
+          <LanguageProvider>
+            <main id="app-root">{children}</main>
+            <ThemeToggle />
+          </LanguageProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

@@ -50,6 +50,9 @@ export default async function DashboardLayout({
           <Link href="/dashboard/transactions" style={styles.navLink}>
             <span style={styles.navIcon}>💰</span> Transaction Log
           </Link>
+          <Link href="/dashboard/settings" style={styles.navLink}>
+            <span style={styles.navIcon}>⚙️</span> Settings
+          </Link>
         </nav>
 
         <div style={styles.sidebarFooter}>
@@ -82,7 +85,7 @@ const styles = {
     display: "flex",
     minHeight: "100vh",
     backgroundColor: "var(--bg-primary)",
-    background: "radial-gradient(circle at 80% 20%, #1e1b4b 0%, #0a0f1d 80%)",
+    background: "var(--bg-radial)",
   },
   sidebar: {
     width: "280px",
@@ -98,11 +101,13 @@ const styles = {
     position: "sticky" as const,
     top: 0,
     zIndex: 10,
+    background: "var(--sidebar-bg)",
+    backdropFilter: "blur(20px)",
   },
   brand: {
     fontSize: "1.5rem",
     fontWeight: 800,
-    color: "#fff",
+    color: "var(--text-primary)",
     display: "flex",
     alignItems: "center",
     gap: "0.5rem",
@@ -112,8 +117,8 @@ const styles = {
     fontSize: "1.75rem",
   },
   businessBadge: {
-    background: "rgba(255, 255, 255, 0.03)",
-    border: "1px solid rgba(255, 255, 255, 0.05)",
+    background: "rgba(0, 0, 0, 0.02)",
+    border: "1px solid rgba(0, 0, 0, 0.05)",
     borderRadius: "12px",
     padding: "0.75rem 1rem",
     marginBottom: "2rem",
@@ -121,15 +126,15 @@ const styles = {
   bizName: {
     fontSize: "1rem",
     fontWeight: 700,
-    color: "#fff",
+    color: "var(--text-primary)",
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap" as const,
   },
   roleName: {
     fontSize: "0.75rem",
-    color: "var(--accent-cyan)",
-    fontWeight: 500,
+    color: "var(--accent-purple)",
+    fontWeight: 600,
     marginTop: "0.2rem",
     textTransform: "uppercase" as const,
     letterSpacing: "0.5px",
@@ -151,8 +156,8 @@ const styles = {
     fontWeight: 500,
     transition: "all 0.2s ease",
     ":hover": {
-      background: "rgba(255,255,255,0.03)",
-      color: "#fff",
+      background: "rgba(0, 0, 0, 0.03)",
+      color: "var(--text-primary)",
     },
   },
   navLinkHighlight: {
@@ -161,19 +166,18 @@ const styles = {
     gap: "0.75rem",
     padding: "0.85rem 1rem",
     borderRadius: "10px",
-    color: "#fff",
+    color: "var(--accent-purple)",
     fontSize: "0.95rem",
     fontWeight: 600,
-    background: "linear-gradient(90deg, rgba(6,182,212,0.15) 0%, rgba(99,102,241,0.15) 100%)",
-    border: "1px solid rgba(6, 182, 212, 0.25)",
-    boxShadow: "0 4px 12px rgba(6, 182, 212, 0.1)",
+    background: "rgba(124, 58, 237, 0.06)",
+    border: "1px solid rgba(124, 58, 237, 0.12)",
   },
   navIcon: {
     fontSize: "1.15rem",
   },
   sidebarFooter: {
     marginTop: "auto",
-    borderTop: "1px solid rgba(255, 255, 255, 0.05)",
+    borderTop: "1px solid rgba(0, 0, 0, 0.05)",
     paddingTop: "1.5rem",
     display: "flex",
     flexDirection: "column" as const,
@@ -184,12 +188,12 @@ const styles = {
   },
   userName: {
     fontWeight: 600,
-    color: "#fff",
+    color: "var(--text-primary)",
     fontSize: "0.95rem",
   },
   userEmail: {
     fontSize: "0.8rem",
-    color: "var(--text-muted)",
+    color: "var(--text-secondary)",
     textOverflow: "ellipsis",
     overflow: "hidden",
     whiteSpace: "nowrap" as const,
@@ -216,11 +220,12 @@ const styles = {
     top: 0,
     zIndex: 9,
     backdropFilter: "blur(12px)",
+    background: "var(--sidebar-bg)",
   },
   headerTitle: {
     fontSize: "1.2rem",
     fontWeight: 700,
-    color: "#fff",
+    color: "var(--text-primary)",
     letterSpacing: "-0.2px",
   },
   headerStatus: {

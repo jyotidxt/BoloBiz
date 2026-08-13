@@ -82,12 +82,12 @@ export default function Hero() {
 const styles = {
   hero: {
     padding: "150px 2rem 100px 2rem",
-    background: "radial-gradient(circle at 80% 20%, rgba(245, 243, 255, 0.75) 0%, rgba(255, 255, 255, 1) 60%)",
+    background: "var(--bg-radial)",
     minHeight: "100vh",
     display: "flex",
     alignItems: "center",
     overflow: "hidden",
-    borderBottom: "1px solid rgba(0,0,0,0.02)",
+    borderBottom: "1px solid var(--glass-border)",
   },
   container: {
     display: "grid",
