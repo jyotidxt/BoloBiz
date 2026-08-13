@@ -1,15 +1,19 @@
 "use client";
 
 import Link from "next/link";
+import { useLanguage } from "@/context/LanguageContext";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 
 export default function CTA() {
+  const { language, t } = useLanguage();
   const [observerRef, isVisible] = useIntersectionObserver({ threshold: 0.15 });
 
   return (
     <section id="cta" style={styles.section}>
       <div
         ref={observerRef}
+        key={language}
+        className="animate-fade-in"
         style={{
           ...styles.banner,
           opacity: isVisible ? 1 : 0,
@@ -22,15 +26,15 @@ export default function CTA() {
         </div>
 
         <div style={styles.centerText}>
-          <h2 style={styles.title}>बोलकर अपने बिज़नेस को आसान बनाएं</h2>
+          <h2 style={styles.title}>{t("cta.title")}</h2>
           <p style={styles.subtitle}>
-            BoloBiz के साथ समय बचाएं और अपने बिज़नेस को नई ऊंचाइयों पर ले जाएं।
+            {t("cta.subtitle")}
           </p>
         </div>
 
         <div style={styles.rightAction}>
           <Link href="/signup" style={styles.whiteBtn}>
-            अभी शुरू करें - यह मुफ्त है <span style={styles.arrow}>→</span>
+            {t("cta.btnText")} <span style={styles.arrow}>→</span>
           </Link>
         </div>
       </div>

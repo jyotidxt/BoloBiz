@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface DemoMessage {
   id: string;
@@ -15,41 +16,63 @@ interface QuestionOption {
   widgetData: any;
 }
 
-const QUESTIONS: QuestionOption[] = [
-  {
-    text: "आज कितनी sale हुई?",
-    answer: "आज आपकी कुल बिक्री (Sales) ₹8,450 रही है, जिसमें कुल 14 ऑर्डर्स पूरे हुए।",
-    widgetType: "SALES",
-    widgetData: { amount: 8450, orders: 14, cashSales: 6450, creditSales: 2000 },
-  },
-  {
-    text: "किसका payment बाकी है?",
-    answer: "अमित का ₹800 और रमेश का ₹2,350 उधार बाकी है। कुल बकाया राशि ₹3,150 है।",
-    widgetType: "CREDIT",
-    widgetData: { total: 3150, list: [{ name: "Ramesh Kumar", bal: 2350 }, { name: "Amit Sharma", bal: 800 }] },
-  },
-  {
-    text: "Maggi कितनी बची है?",
-    answer: "स्टॉक में Maggi के अभी 42 पैकेट उपलब्ध हैं। यह रिऑर्डर लेवल (5) से सुरक्षित है।",
-    widgetType: "INVENTORY",
-    widgetData: { name: "Maggi Noodles", stock: 42, price: 14, status: "SAFE" },
-  },
-  {
-    text: "Mark Ramesh's ₹500 payment as received.",
-    answer: "ठीक है! रमेश का ₹500 का भुगतान (Payment) दर्ज कर लिया है। उनका नया बकाया उधार ₹1,850 है।",
-    widgetType: "CONFIRMATION",
-    widgetData: { customer: "Ramesh Kumar", type: "PAYMENT_RECEIVED", amount: 500, outstanding: 1850 },
-  },
-];
-
 export default function ConversationDemo() {
-  const [messages, setMessages] = useState<DemoMessage[]>([
-    { id: "1", role: "ASSISTANT", content: "नमस्ते! मैं BoloBiz हूँ। कोई भी प्रश्न पूछने के लिए नीचे दिए गए बटन पर क्लिक करें।" },
-  ]);
+  const { language, t } = useLanguage();
+  const [messages, setMessages] = useState<DemoMessage[]>([]);
   const [activeWidget, setActiveWidget] = useState<"SALES" | "CREDIT" | "INVENTORY" | "CONFIRMATION" | null>(null);
   const [widgetData, setWidgetData] = useState<any>(null);
   const [isTyping, setIsTyping] = useState(false);
   const threadEndRef = useRef<HTMLDivElement>(null);
+
+  // Initialize first greeting when language changes
+  useEffect(() => {
+    setMessages([
+      {
+        id: "1",
+        role: "ASSISTANT",
+        content: language === "hi"
+          ? "नमस्ते! मैं BoloBiz हूँ। कोई भी प्रश्न पूछने के लिए नीचे दिए गए बटन पर क्लिक करें।"
+          : "Hello! I am BoloBiz. Click on any question chip below to test my intelligence.",
+      },
+    ]);
+    setActiveWidget(null);
+    setWidgetData(null);
+  }, [language]);
+
+  const QUESTIONS: QuestionOption[] = [
+    {
+      text: language === "hi" ? "आज कितनी sale हुई?" : "What is today's sale?",
+      answer: language === "hi"
+        ? "आज आपकी कुल बिक्री (Sales) ₹8,450 रही है, जिसमें कुल 14 ऑर्डर्स पूरे हुए।"
+        : "Today's sales total ₹8,450 across 14 completed orders.",
+      widgetType: "SALES",
+      widgetData: { amount: 8450, orders: 14, cashSales: 6450, creditSales: 2000 },
+    },
+    {
+      text: language === "hi" ? "किसका payment बाकी है?" : "Whose payment is pending?",
+      answer: language === "hi"
+        ? "अमित का ₹800 और रमेश का ₹2,350 उधार बाकी है। कुल बकाया राशि ₹3,150 है।"
+        : "Amit owes ₹800 and Ramesh owes ₹2,350. Total outstanding is ₹3,150.",
+      widgetType: "CREDIT",
+      widgetData: { total: 3150, list: [{ name: language === "hi" ? "रमेश कुमार" : "Ramesh Kumar", bal: 2350 }, { name: language === "hi" ? "अमित शर्मा" : "Amit Sharma", bal: 800 }] },
+    },
+    {
+      text: language === "hi" ? "Maggi कितनी बची है?" : "How much Maggi is left?",
+      answer: language === "hi"
+        ? "स्टॉक में Maggi के अभी 42 पैकेट उपलब्ध हैं। यह रिऑर्डर लेवल (5) से सुरक्षित है।"
+        : "You have 42 packets of Maggi left in stock. This is safely above the threshold (5).",
+      widgetType: "INVENTORY",
+      widgetData: { name: "Maggi Noodles", stock: 42, price: 14, status: "SAFE" },
+    },
+    {
+      text: language === "hi" ? "Mark Ramesh's ₹500 payment as received." : "Mark Ramesh's ₹500 payment as received.",
+      answer: language === "hi"
+        ? "ठीक है! रमेश का ₹500 का भुगतान (Payment) दर्ज कर लिया है। उनका नया बकाया उधार ₹1,850 है।"
+        : "Alright! Recorded ₹500 payment from Ramesh. New outstanding balance is ₹1,850.",
+      widgetType: "CONFIRMATION",
+      widgetData: { customer: "Ramesh Kumar", type: "PAYMENT_RECEIVED", amount: 500, outstanding: 1850 },
+    },
+  ];
 
   const handleChipClick = (opt: QuestionOption) => {
     if (isTyping) return;
@@ -85,19 +108,17 @@ export default function ConversationDemo() {
   return (
     <section id="demo" style={styles.section}>
       <div style={styles.container}>
-        <div style={styles.sectionHeader}>
-          <h2 style={styles.heading}>Interactive Sandbox Simulator</h2>
-          <p style={styles.subtext}>
-            Test a simulated BoloBiz interface. Click on any question chip below to see how BoloBiz queries data and updates the visual UI.
-          </p>
+        <div style={styles.sectionHeader} key={language} className="animate-fade-in">
+          <h2 style={styles.heading}>{t("sandboxDemo.heading")}</h2>
+          <p style={styles.subtext}>{t("sandboxDemo.subtext")}</p>
         </div>
 
         <div style={styles.splitLayout}>
           {/* Chat thread box */}
           <div className="glass-panel" style={styles.chatCard}>
             <div style={styles.chatHeader}>
-              <span style={styles.badgeLive}>🟢 Sandbox Environment</span>
-              <span>BoloBiz AI Assistant</span>
+              <span style={styles.badgeLive}>🟢 {t("sandboxDemo.badge")}</span>
+              <span>{t("sandboxDemo.title")}</span>
             </div>
 
             <div style={styles.chatBody}>
@@ -138,37 +159,44 @@ export default function ConversationDemo() {
           {/* Interactive Widget Display representing client UI sync */}
           <div className="glass-panel" style={styles.widgetCard}>
             <div style={styles.widgetHeader}>
-              📊 Client Dashboard Sync View
+              📊 {t("sandboxDemo.dbView")}
             </div>
             <div style={styles.widgetBody}>
               {!activeWidget ? (
                 <div style={styles.widgetEmpty}>
                   <span>💡</span>
-                  <p>Click a question chip to view synchronized database reports.</p>
+                  <p>{t("sandboxDemo.help")}</p>
                 </div>
               ) : (
                 <div style={{ width: "100%" }} className="animate-fade-in">
                   {activeWidget === "SALES" && (
                     <div>
-                      <h4 style={styles.widgetTitle}>Today's Sales Dashboard</h4>
+                      <h4 style={styles.widgetTitle}>
+                        {language === "hi" ? "आज का सेल्स डैशबोर्ड" : "Today's Sales Dashboard"}
+                      </h4>
                       <div style={styles.metricBig}>₹{widgetData.amount.toLocaleString()}</div>
                       <div style={styles.metricGrid}>
                         <div style={styles.metricCol}>
-                          <span style={styles.metricLabel}>Cash Sales</span>
+                          <span style={styles.metricLabel}>{language === "hi" ? "कैश बिक्री" : "Cash Sales"}</span>
                           <span style={styles.metricVal}>₹{widgetData.cashSales.toLocaleString()}</span>
                         </div>
                         <div style={styles.metricCol}>
-                          <span style={styles.metricLabel}>Credit Sales</span>
+                          <span style={styles.metricLabel}>{language === "hi" ? "उधार बिक्री" : "Credit Sales"}</span>
                           <span style={styles.metricVal}>₹{widgetData.creditSales.toLocaleString()}</span>
                         </div>
                       </div>
-                      <div style={styles.widgetFooter}>Computed from {widgetData.orders} active receipts</div>
+                      <div style={styles.widgetFooter}>
+                        {language === "hi" 
+                          ? `${widgetData.orders} सक्रिय प्राप्तियों से गणना` 
+                          : `Computed from ${widgetData.orders} active receipts`
+                        }
+                      </div>
                     </div>
                   )}
 
                   {activeWidget === "CREDIT" && (
                     <div>
-                      <h4 style={styles.widgetTitle}>Credit Ledger (Baki Udhaar)</h4>
+                      <h4 style={styles.widgetTitle}>{language === "hi" ? "उधार खाता (बकाया)" : "Credit Ledger (Baki)"}</h4>
                       <div style={{ ...styles.metricBig, color: "var(--status-danger)", fontSize: "2rem" }}>
                         ₹{widgetData.total.toLocaleString()}
                       </div>
@@ -185,19 +213,23 @@ export default function ConversationDemo() {
 
                   {activeWidget === "INVENTORY" && (
                     <div>
-                      <h4 style={styles.widgetTitle}>Inventory Product Status</h4>
+                      <h4 style={styles.widgetTitle}>
+                        {language === "hi" ? "स्टॉक स्थिति" : "Inventory Product Status"}
+                      </h4>
                       <div style={styles.productBadge}>
                         <strong>{widgetData.name}</strong>
                       </div>
                       <div style={styles.metricBig}>{widgetData.stock} Units</div>
                       <div style={styles.metricGrid}>
                         <div style={styles.metricCol}>
-                          <span style={styles.metricLabel}>Price</span>
+                          <span style={styles.metricLabel}>{language === "hi" ? "मूल्य" : "Price"}</span>
                           <span style={styles.metricVal}>₹{widgetData.price}</span>
                         </div>
                         <div style={styles.metricCol}>
-                          <span style={styles.metricLabel}>Threshold Status</span>
-                          <span style={{ color: "var(--status-success)", fontWeight: 700 }}>SAFE</span>
+                          <span style={styles.metricLabel}>{language === "hi" ? "सुरक्षा थ्रेशोल्ड" : "Threshold Status"}</span>
+                          <span style={{ color: "var(--status-success)", fontWeight: 700 }}>
+                            {language === "hi" ? "सुरक्षित" : "SAFE"}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -205,14 +237,16 @@ export default function ConversationDemo() {
 
                   {activeWidget === "CONFIRMATION" && (
                     <div>
-                      <h4 style={styles.widgetTitle}>Transaction Receipt Approved</h4>
+                      <h4 style={styles.widgetTitle}>
+                        {language === "hi" ? "ट्रांजेक्शन रसीद स्वीकृत" : "Transaction Receipt Approved"}
+                      </h4>
                       <div style={styles.receiptBox}>
                         <div><strong>Transaction type:</strong> PAYMENT_RECEIVED</div>
                         <div><strong>Customer Name:</strong> {widgetData.customer}</div>
                         <div><strong>Amount:</strong> ₹{widgetData.amount}</div>
                         <hr style={styles.receiptDivider} />
-                        <div style={{ color: "var(--accent-cyan)" }}>
-                          <strong>Outstanding Udhaar:</strong> ₹{widgetData.outstanding}
+                        <div style={{ color: "var(--accent-purple)" }}>
+                          <strong>Outstanding Balance:</strong> ₹{widgetData.outstanding}
                         </div>
                       </div>
                     </div>
@@ -245,7 +279,7 @@ const styles = {
   heading: {
     fontSize: "2.5rem",
     fontWeight: 800,
-    color: "#fff",
+    color: "var(--text-primary)",
     marginBottom: "1rem",
   },
   subtext: {
@@ -269,11 +303,13 @@ const styles = {
     flexDirection: "column" as const,
     borderRadius: "16px",
     overflow: "hidden",
+    background: "#ffffff",
+    border: "1px solid rgba(0,0,0,0.05)",
   },
   chatHeader: {
-    background: "rgba(255,255,255,0.02)",
+    background: "#f9fafb",
     padding: "0.85rem 1.25rem",
-    borderBottom: "1px solid var(--glass-border)",
+    borderBottom: "1px solid rgba(0,0,0,0.05)",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
@@ -282,7 +318,7 @@ const styles = {
     fontWeight: 600,
   },
   badgeLive: {
-    color: "var(--accent-cyan)",
+    color: "var(--accent-purple)",
   },
   chatBody: {
     flex: 1,
@@ -298,11 +334,12 @@ const styles = {
   },
   userBubble: {
     padding: "0.6rem 1rem",
-    background: "linear-gradient(135deg, var(--accent-indigo) 0%, var(--accent-purple) 100%)",
+    background: "var(--accent-gradient)",
     color: "#fff",
     borderRadius: "15px 15px 2px 15px",
     fontSize: "0.85rem",
     maxWidth: "80%",
+    boxShadow: "0 2px 6px rgba(219, 39, 119, 0.15)",
   },
   assistantRow: {
     display: "flex",
@@ -310,9 +347,9 @@ const styles = {
   },
   assistantBubble: {
     padding: "0.75rem 1.25rem",
-    background: "rgba(255,255,255,0.03)",
-    border: "1px solid rgba(255, 255, 255, 0.06)",
-    color: "#fff",
+    background: "rgba(0, 0, 0, 0.02)",
+    border: "1px solid rgba(0, 0, 0, 0.04)",
+    color: "var(--text-primary)",
     borderRadius: "15px 15px 15px 2px",
     fontSize: "0.85rem",
     maxWidth: "80%",
@@ -322,23 +359,24 @@ const styles = {
     display: "flex",
     gap: "0.5rem",
     padding: "1rem",
-    background: "rgba(0,0,0,0.2)",
-    borderTop: "1px solid var(--glass-border)",
+    background: "#f9fafb",
+    borderTop: "1px solid rgba(0,0,0,0.05)",
     flexWrap: "wrap" as const,
   },
   chip: {
-    background: "rgba(255, 255, 255, 0.03)",
-    border: "1px solid rgba(255, 255, 255, 0.06)",
+    background: "#ffffff",
+    border: "1px solid rgba(0, 0, 0, 0.06)",
     padding: "0.4rem 0.85rem",
     borderRadius: "15px",
     fontSize: "0.8rem",
     color: "var(--text-secondary)",
     cursor: "pointer",
     transition: "all 0.2s ease",
+    boxShadow: "0 2px 6px rgba(0,0,0,0.02)",
     ":hover": {
-      borderColor: "var(--accent-cyan)",
-      background: "rgba(6, 182, 212, 0.06)",
-      color: "#fff",
+      borderColor: "var(--accent-purple)",
+      background: "rgba(124, 58, 237, 0.06)",
+      color: "var(--accent-purple)",
     },
   },
   widgetCard: {
@@ -349,12 +387,14 @@ const styles = {
     justifyContent: "center",
     alignItems: "center",
     height: "460px",
+    background: "#ffffff",
+    border: "1px solid rgba(0,0,0,0.05)",
   },
   widgetHeader: {
     fontSize: "0.95rem",
     fontWeight: 700,
     color: "var(--text-secondary)",
-    borderBottom: "1px solid rgba(255,255,255,0.05)",
+    borderBottom: "1px solid rgba(0,0,0,0.05)",
     width: "100%",
     paddingBottom: "0.75rem",
     marginBottom: "1.5rem",
@@ -378,14 +418,14 @@ const styles = {
   },
   widgetTitle: {
     fontSize: "1.1rem",
-    color: "#fff",
+    color: "var(--text-primary)",
     fontWeight: 700,
     marginBottom: "1rem",
   },
   metricBig: {
     fontSize: "2.5rem",
     fontWeight: 800,
-    color: "var(--accent-cyan)",
+    color: "var(--accent-purple)",
     marginBottom: "1.5rem",
   },
   metricGrid: {
@@ -407,7 +447,7 @@ const styles = {
   },
   metricVal: {
     fontSize: "1.1rem",
-    color: "#fff",
+    color: "var(--text-primary)",
     fontWeight: 700,
   },
   widgetFooter: {
@@ -425,20 +465,20 @@ const styles = {
     justifyContent: "space-between",
     alignItems: "center",
     padding: "0.75rem",
-    background: "rgba(255,255,255,0.02)",
-    border: "1px solid rgba(255,255,255,0.05)",
+    background: "#f9fafb",
+    border: "1px solid rgba(0, 0, 0, 0.05)",
     borderRadius: "8px",
   },
   productBadge: {
-    background: "rgba(255,255,255,0.04)",
+    background: "#f3f4f6",
     padding: "0.35rem 0.75rem",
     borderRadius: "15px",
     display: "inline-block",
     marginBottom: "0.5rem",
   },
   receiptBox: {
-    background: "#080c14",
-    border: "1px solid rgba(255, 255, 255, 0.05)",
+    background: "#f9fafb",
+    border: "1px solid rgba(0,0,0,0.05)",
     borderRadius: "8px",
     padding: "1rem",
     fontSize: "0.85rem",
@@ -448,7 +488,7 @@ const styles = {
   },
   receiptDivider: {
     border: "none",
-    borderTop: "1px solid rgba(255,255,255,0.08)",
+    borderTop: "1px solid rgba(0,0,0,0.08)",
     margin: "0.5rem 0",
   },
   typingIndicator: {

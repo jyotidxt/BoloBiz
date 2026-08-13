@@ -1,35 +1,43 @@
 "use client";
 
+import { useLanguage } from "@/context/LanguageContext";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 
 export default function LanguageDemo() {
+  const { language, t } = useLanguage();
   const [observerRef, isVisible] = useIntersectionObserver({ threshold: 0.1 });
 
   const examples = [
     {
-      locale: "🇮🇳 हिन्दी (Hindi)",
+      locale: language === "hi" ? "🇮🇳 हिन्दी (Hindi)" : "🇮🇳 Hindi (हिन्दी)",
       input: "आज रमेश को ₹500 उधार दिए।",
-      meaning: "Sales credit of ₹500 registered to customer Ramesh.",
+      meaning: language === "hi" 
+        ? "रमेश कुमार के खाते में ₹500 का उधार दर्ज किया गया।" 
+        : "Sales credit of ₹500 registered to customer Ramesh Kumar.",
     },
     {
-      locale: "🌐 Hinglish (Hinglish)",
+      locale: language === "hi" ? "🌐 हिंग्लिश (Hinglish)" : "🌐 Hinglish (हिंग्लिश)",
       input: "Ramesh ne ₹500 de diye, entry check karo.",
-      meaning: "Repayment of ₹500 logged for customer Ramesh.",
+      meaning: language === "hi" 
+        ? "रमेश कुमार का ₹500 का भुगतान दर्ज किया गया।" 
+        : "Repayment of ₹500 logged for customer Ramesh Kumar.",
     },
     {
-      locale: "🇬🇧 English (English)",
+      locale: language === "hi" ? "🇬🇧 इंग्लिश (English)" : "🇬🇧 English (इंग्लिश)",
       input: "Add ₹500 credit transaction to Ramesh.",
-      meaning: "Sales credit of ₹500 registered to customer Ramesh.",
+      meaning: language === "hi" 
+        ? "रमेश कुमार के खाते में ₹500 का उधार दर्ज किया गया।" 
+        : "Sales credit of ₹500 registered to customer Ramesh Kumar.",
     },
   ];
 
   return (
     <section id="language-demo" style={styles.section}>
       <div style={styles.container}>
-        <div style={styles.header}>
-          <h2 style={styles.heading}>जिस भाषा में आप बोलते हैं, BoloBiz उसी भाषा में समझता है।</h2>
+        <div style={styles.header} key={language} className="animate-fade-in">
+          <h2 style={styles.heading}>{t("languageDemo.heading")}</h2>
           <p style={styles.subtext}>
-            Whether you speak in Hindi, write in Hinglish, or command in English, BoloBiz maps everything into the exact same structured database records.
+            {t("languageDemo.subtext")}
           </p>
         </div>
 
@@ -113,7 +121,7 @@ const styles = {
   heading: {
     fontSize: "2.5rem",
     fontWeight: 800,
-    color: "#fff",
+    color: "var(--text-primary)",
     marginBottom: "1rem",
     letterSpacing: "-1px",
   },
@@ -141,26 +149,29 @@ const styles = {
     padding: "2rem 1.5rem",
     borderRadius: "16px",
     textAlign: "left" as const,
-    borderLeft: "3px solid var(--accent-cyan)",
+    borderLeft: "3px solid var(--accent-purple)",
+    background: "#ffffff",
+    border: "1px solid rgba(0,0,0,0.05)",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.02)",
   },
   localeLabel: {
     fontSize: "0.8rem",
     fontWeight: 700,
-    color: "var(--accent-cyan)",
+    color: "var(--accent-purple)",
     textTransform: "uppercase" as const,
     marginBottom: "1rem",
   },
   quote: {
     fontSize: "1.25rem",
     fontWeight: 600,
-    color: "#fff",
+    color: "var(--text-primary)",
     fontStyle: "italic",
     marginBottom: "1.25rem",
   },
   interpretation: {
     fontSize: "0.85rem",
     color: "var(--text-secondary)",
-    background: "rgba(255, 255, 255, 0.02)",
+    background: "rgba(0, 0, 0, 0.02)",
     padding: "0.5rem 0.75rem",
     borderRadius: "6px",
   },
@@ -183,13 +194,15 @@ const styles = {
     maxWidth: "600px",
     borderRadius: "12px",
     overflow: "hidden",
-    boxShadow: "0 10px 30px rgba(0,0,0,0.4)",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.04)",
     textAlign: "left" as const,
+    background: "#ffffff",
+    border: "1px solid rgba(0,0,0,0.06)",
   },
   dbHeader: {
-    background: "rgba(255, 255, 255, 0.02)",
+    background: "#f9fafb",
     padding: "0.75rem 1.25rem",
-    borderBottom: "1px solid var(--glass-border)",
+    borderBottom: "1px solid rgba(0,0,0,0.05)",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
@@ -202,12 +215,12 @@ const styles = {
   },
   dbCode: {
     padding: "1.5rem",
-    background: "#080c14",
+    background: "#0d0f1a",
     overflowX: "auto" as const,
   },
   pre: {
     fontFamily: "monospace",
-    color: "var(--accent-cyan)",
+    color: "#60a5fa",
     fontSize: "0.85rem",
     lineHeight: 1.4,
   },

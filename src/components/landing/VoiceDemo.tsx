@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface DemoScenario {
   userQuery: string;
@@ -8,43 +9,48 @@ interface DemoScenario {
   type: string;
   amount?: number;
   customer?: string;
-  resultLabel?: string;
+  resultLabel: string;
+  resultLabelEn: string;
 }
 
 const SCENARIOS: Record<"hinglish" | "english" | "hindi", DemoScenario> = {
   hindi: {
-    userQuery: "आज रमेश को 500 रुपये उधार दिए।",
+    userQuery: "आज रमेश को ₹500 उधार दिए।",
     assistantReply: "ठीक है! रमेश के खाते में ₹500 का उधार जोड़ दिया गया है!",
     type: "CREDIT",
     amount: 500,
     customer: "Ramesh Kumar",
     resultLabel: "बकाया राशि अपडेट",
+    resultLabelEn: "Balance Updated",
   },
   hinglish: {
-    userQuery: "Ramesh ko 500 rupaye udhaar diye.",
+    userQuery: "Aaj Ramesh ko ₹500 udhaar diye.",
     assistantReply: "Done! Ramesh ke khate mein ₹500 ka udhaar add kar diya hai.",
     type: "CREDIT",
     amount: 500,
     customer: "Ramesh Kumar",
-    resultLabel: "Ledger Credit Logged",
+    resultLabel: "बकाया राशि अपडेट (Hinglish)",
+    resultLabelEn: "Hinglish Ledger Updated",
   },
   english: {
-    userQuery: "Record a ₹500 credit for Ramesh.",
+    userQuery: "I gave Ramesh ₹500 on credit today.",
     assistantReply: "Alright! Recorded ₹500 credit under Ramesh's profile.",
     type: "CREDIT",
     amount: 500,
     customer: "Ramesh Kumar",
-    resultLabel: "Ledger Credit Logged",
+    resultLabel: "बकाया राशि अपडेट (English)",
+    resultLabelEn: "Ledger Credit Logged",
   },
 };
 
 export default function VoiceDemo() {
-  const [lang, setLang] = useState<"hinglish" | "english" | "hindi">("hindi");
+  const { language, aiLanguage, setAiLanguage, t } = useLanguage();
+  const [demoLang, setDemoLang] = useState<"hinglish" | "english" | "hindi">("hindi");
   const [demoState, setDemoState] = useState<"idle" | "listening" | "typing" | "thinking" | "done">("idle");
   const [typedText, setTypedText] = useState("");
   const [showReply, setShowReply] = useState(false);
 
-  const current = SCENARIOS[lang];
+  const current = SCENARIOS[demoLang];
 
   const runDemo = () => {
     if (demoState !== "idle") return;
@@ -70,10 +76,10 @@ export default function VoiceDemo() {
               setDemoState("done");
               setShowReply(true);
 
-              if (window.speechSynthesis) {
+              if (typeof window !== "undefined" && window.speechSynthesis) {
                 window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(current.assistantReply);
-                utterance.lang = lang === "english" ? "en-IN" : "hi-IN";
+                utterance.lang = demoLang === "english" ? "en-IN" : "hi-IN";
                 window.speechSynthesis.speak(utterance);
               }
 
@@ -99,14 +105,34 @@ export default function VoiceDemo() {
           <span style={{ ...styles.dot, backgroundColor: "#ffbd2e" }}></span>
           <span style={{ ...styles.dot, backgroundColor: "#27c93f" }}></span>
         </div>
-        <div style={styles.tabName}>BoloBiz Voice Terminal</div>
-        <div style={{ width: "38px" }}></div>
+        
+        {/* AI Language Configuration dropdown inside the demo card */}
+        <div style={styles.aiSelectorBlock}>
+          <span style={styles.aiLabel}>AI Language:</span>
+          <select
+            value={aiLanguage}
+            onChange={(e) => setAiLanguage(e.target.value as any)}
+            style={styles.aiSelect}
+            aria-label="Select AI Recognition Language"
+          >
+            <option value="auto">Auto Detect ▾</option>
+            <option value="en">English</option>
+            <option value="hi">हिंदी</option>
+            <option value="hinglish">Hinglish</option>
+          </select>
+        </div>
+
+        <div style={{ width: "10px" }}></div>
       </div>
 
-      <div style={{ padding: "1.5rem", display: "flex", flexDirection: "column" as const, flex: 1, justifyContent: "space-between" }}>
+      <div style={{ padding: "1.25rem 1.5rem 1.5rem 1.5rem", display: "flex", flexDirection: "column" as const, flex: 1, justifyContent: "space-between" }}>
+        
         {/* Title */}
         <div style={styles.mainTitle}>
-          बोलिए, BoloBiz समझेगा और <br />आपके लिए काम करेगा
+          {language === "hi" 
+            ? "बोलिए, BoloBiz समझेगा और आपके लिए काम करेगा" 
+            : "Speak, BoloBiz understands & acts automatically"
+          }
         </div>
 
         {/* Center Mic wave visualizer */}
@@ -126,11 +152,11 @@ export default function VoiceDemo() {
             </button>
           </div>
           <button onClick={runDemo} disabled={demoState !== "idle"} style={styles.speakPill}>
-            {demoState === "idle" && "आप बोलें..."}
-            {demoState === "listening" && "सुन रहा हूँ..."}
-            {demoState === "typing" && "प्रोसेसिंग..."}
-            {demoState === "thinking" && "प्रोसेसिंग..."}
-            {demoState === "done" && "डन!"}
+            {demoState === "idle" && (language === "hi" ? "आप बोलें..." : "Tap to speak...")}
+            {demoState === "listening" && (language === "hi" ? "सुन रहा हूँ..." : "Listening...")}
+            {demoState === "typing" && (language === "hi" ? "प्रोसेसिंग..." : "Processing...")}
+            {demoState === "thinking" && (language === "hi" ? "प्रोसेसिंग..." : "Analyzing...")}
+            {demoState === "done" && (language === "hi" ? "डन!" : "Done!")}
           </button>
         </div>
 
@@ -159,25 +185,25 @@ export default function VoiceDemo() {
           )}
         </div>
 
-        {/* Footer Language Toggles */}
+        {/* Footer Language Toggles for Conversation Dialogues */}
         <div style={styles.footerToggles}>
           <button
-            onClick={() => { if (demoState === "idle") setLang("hindi"); }}
-            style={lang === "hindi" ? styles.activeLangBtn : styles.langBtn}
+            onClick={() => { if (demoState === "idle") setDemoLang("hindi"); }}
+            style={demoLang === "hindi" ? styles.activeLangBtn : styles.langBtn}
             disabled={demoState !== "idle"}
           >
             हिंदी
           </button>
           <button
-            onClick={() => { if (demoState === "idle") setLang("english"); }}
-            style={lang === "english" ? styles.activeLangBtn : styles.langBtn}
+            onClick={() => { if (demoState === "idle") setDemoLang("english"); }}
+            style={demoLang === "english" ? styles.activeLangBtn : styles.langBtn}
             disabled={demoState !== "idle"}
           >
             English
           </button>
           <button
-            onClick={() => { if (demoState === "idle") setLang("hinglish"); }}
-            style={lang === "hinglish" ? styles.activeLangBtn : styles.langBtn}
+            onClick={() => { if (demoState === "idle") setDemoLang("hinglish"); }}
+            style={demoLang === "hinglish" ? styles.activeLangBtn : styles.langBtn}
             disabled={demoState !== "idle"}
           >
             Hinglish
@@ -218,11 +244,28 @@ const styles = {
     height: "10px",
     borderRadius: "50%",
   },
-  tabName: {
-    fontSize: "0.8rem",
+  aiSelectorBlock: {
+    display: "flex",
+    alignItems: "center",
+    gap: "0.4rem",
+    background: "rgba(0, 0, 0, 0.03)",
+    padding: "0.25rem 0.65rem",
+    borderRadius: "12px",
+    border: "1px solid rgba(0,0,0,0.06)",
+  },
+  aiLabel: {
+    fontSize: "0.75rem",
     color: "var(--text-secondary)",
-    fontWeight: 600,
-    textTransform: "uppercase" as const,
+    fontWeight: 700,
+  },
+  aiSelect: {
+    fontSize: "0.75rem",
+    color: "#7c3aed",
+    fontWeight: 700,
+    cursor: "pointer",
+    background: "transparent",
+    border: "none",
+    outline: "none",
   },
   mainTitle: {
     fontSize: "1.25rem",
@@ -235,7 +278,7 @@ const styles = {
     display: "flex",
     flexDirection: "column" as const,
     alignItems: "center",
-    margin: "1rem 0",
+    margin: "0.5rem 0",
   },
   waveWrapper: {
     position: "relative" as const,
@@ -311,6 +354,7 @@ const styles = {
     overflowY: "auto" as const,
     padding: "0.5rem 0",
     maxHeight: "150px",
+    minHeight: "100px",
   },
   chatRow: {
     display: "flex",

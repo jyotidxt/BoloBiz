@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useLanguage } from "@/context/LanguageContext";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 
 export default function FeatureGrid() {
+  const { language, t } = useLanguage();
   const [observerRef, isVisible] = useIntersectionObserver({ threshold: 0.1 });
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
 
@@ -11,8 +13,8 @@ export default function FeatureGrid() {
     {
       id: 1,
       icon: "💳",
-      title: "बिक्री और लेन-देन",
-      desc: "बिक्री, उधार, भुगतान और खर्च को आसानी से रिकॉर्ड करें।",
+      titleKey: "features.salesTitle",
+      descKey: "features.salesDesc",
       visual: (isHovered: boolean) => (
         <div style={styles.cardVisualContainer}>
           <div
@@ -26,11 +28,11 @@ export default function FeatureGrid() {
           </div>
           <div style={styles.miniLedger}>
             <div style={styles.ledgerRow}>
-              <span>बिक्री</span>
+              <span>{language === "hi" ? "बिक्री" : "Sale"}</span>
               <span style={{ color: "var(--status-success)", fontWeight: 700 }}>+₹1,200</span>
             </div>
             <div style={styles.ledgerRow}>
-              <span>खर्च</span>
+              <span>{language === "hi" ? "खर्च" : "Expense"}</span>
               <span style={{ color: "var(--status-danger)", fontWeight: 700 }}>-₹450</span>
             </div>
           </div>
@@ -40,8 +42,8 @@ export default function FeatureGrid() {
     {
       id: 2,
       icon: "👥",
-      title: "ग्राहक प्रबंधन",
-      desc: "ग्राहकों का पूरा रिकॉर्ड, बकाया राशि और भुगतान इतिहास देखें।",
+      titleKey: "features.customerTitle",
+      descKey: "features.customerDesc",
       visual: (isHovered: boolean) => (
         <div style={styles.cardVisualContainer}>
           <div style={styles.barGraph}>
@@ -70,15 +72,17 @@ export default function FeatureGrid() {
               }}
             ></div>
           </div>
-          <span style={styles.graphLabel}>Outstanding Credit</span>
+          <span style={styles.graphLabel}>
+            {language === "hi" ? "बकाया उधार" : "Outstanding Credit"}
+          </span>
         </div>
       ),
     },
     {
       id: 3,
       icon: "📦",
-      title: "इन्वेंट्री मैनेजमेंट",
-      desc: "स्टॉक की स्थिति ट्रैक करें और कम स्टॉक होने पर अलर्ट पाएं।",
+      titleKey: "features.inventoryTitle",
+      descKey: "features.inventoryDesc",
       visual: (isHovered: boolean) => (
         <div style={styles.cardVisualContainer}>
           <div style={styles.stockBox}>
@@ -89,7 +93,10 @@ export default function FeatureGrid() {
                 transition: "all 0.3s ease",
               }}
             >
-              {isHovered ? "स्टॉक: 52 (सुरक्षित)" : "स्टॉक: 2 (लो स्टॉक अलर्ट)"}
+              {isHovered 
+                ? (language === "hi" ? "स्टॉक: 52 (सुरक्षित)" : "Stock: 52 (Safe)")
+                : (language === "hi" ? "स्टॉक: 2 (लो स्टॉक अलर्ट)" : "Stock: 2 (Low Alert)")
+              }
             </span>
           </div>
         </div>
@@ -98,8 +105,8 @@ export default function FeatureGrid() {
     {
       id: 4,
       icon: "🧠",
-      title: "AI से पूछें कुछ भी",
-      desc: "अपने बिज़नेस से जुड़े सवाल सीधे बोलकर पूछें और तुरंत जवाब पाएं।",
+      titleKey: "features.aiTitle",
+      descKey: "features.aiDesc",
       visual: (isHovered: boolean) => (
         <div style={styles.cardVisualContainer}>
           <div
@@ -120,8 +127,8 @@ export default function FeatureGrid() {
     {
       id: 5,
       icon: "🔔",
-      title: "स्मार्ट रिमाइंडर",
-      desc: "बकाया भुगतान के लिए रिमाइंडर भेजें और महत्वपूर्ण अलर्ट प्राप्त करें।",
+      titleKey: "features.reminderTitle",
+      descKey: "features.reminderDesc",
       visual: (isHovered: boolean) => (
         <div style={styles.cardVisualContainer}>
           <div
@@ -132,15 +139,17 @@ export default function FeatureGrid() {
           >
             🔔
           </div>
-          <span style={styles.bellSubtext}>पेमेंट रिमाइंडर सेंड</span>
+          <span style={styles.bellSubtext}>
+            {language === "hi" ? "पेमेंट रिमाइंडर सेंड" : "Payment Reminder Sent"}
+          </span>
         </div>
       ),
     },
     {
       id: 6,
       icon: "📊",
-      title: "रिपोर्ट्स और इनसाइट्स",
-      desc: "डिटेल रिपोर्ट्स और इनसाइट्स से अपने बिज़नेस को बेहतर समझें।",
+      titleKey: "features.insightsTitle",
+      descKey: "features.insightsDesc",
       visual: (isHovered: boolean) => (
         <div style={styles.cardVisualContainer}>
           <svg style={styles.svgChart} viewBox="0 0 100 40">
@@ -156,7 +165,9 @@ export default function FeatureGrid() {
               }}
             />
           </svg>
-          <span style={styles.chartCaption}>+24% बिक्री बढ़ोतरी</span>
+          <span style={styles.chartCaption}>
+            {language === "hi" ? "+24% बिक्री बढ़ोतरी" : "+24% Sales Growth"}
+          </span>
         </div>
       ),
     },
@@ -166,10 +177,10 @@ export default function FeatureGrid() {
     <section id="features" style={styles.features}>
       <div style={styles.container}>
         {/* Section Header */}
-        <div style={styles.sectionHeader}>
-          <div style={styles.badgePill}>सब कुछ एक जगह</div>
-          <h2 style={styles.mainHeading}>आपके बिज़नेस के लिए सब कुछ</h2>
-          <p style={styles.mainSubtext}>एक ही प्लेटफॉर्म पर सभी जरूरी सुविधाएं</p>
+        <div style={styles.sectionHeader} key={language} className="animate-fade-in">
+          <div style={styles.badgePill}>{t("features.badge")}</div>
+          <h2 style={styles.mainHeading}>{t("features.heading")}</h2>
+          <p style={styles.mainSubtext}>{t("features.subheading")}</p>
         </div>
 
         {/* Feature Cards Grid */}
@@ -200,8 +211,8 @@ export default function FeatureGrid() {
                   <span style={styles.icon}>{feat.icon}</span>
                   <span style={styles.arrowIcon}>→</span>
                 </div>
-                <h3 style={styles.cardTitle}>{feat.title}</h3>
-                <p style={styles.cardDesc}>{feat.desc}</p>
+                <h3 style={styles.cardTitle}>{t(feat.titleKey)}</h3>
+                <p style={styles.cardDesc}>{t(feat.descKey)}</p>
                 {feat.visual(isHovered)}
               </div>
             );

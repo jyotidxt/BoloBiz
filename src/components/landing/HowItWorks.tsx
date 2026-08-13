@@ -1,45 +1,45 @@
 "use client";
 
+import { useLanguage } from "@/context/LanguageContext";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 
 export default function HowItWorks() {
+  const { language, t } = useLanguage();
   const [observerRef, isVisible] = useIntersectionObserver({ threshold: 0.15 });
 
   const steps = [
     {
       num: "01",
       icon: "🎙️",
-      title: "बोलिए (Speak)",
-      desc: "अपनी भाषा में बोलें या लिखें। Speak naturally in Hinglish, Hindi, or English. E.g. 'Aaj Ramesh ko 500 rupaye udhaar diye.'",
+      titleKey: "howItWorks.step1Title",
+      descKey: "howItWorks.step1Desc",
     },
     {
       num: "02",
       icon: "🧠",
-      title: "BoloBiz समझेगा (Understand)",
-      desc: "AI आपके शब्दों का मतलब और business context समझता है, extracting the exact entities like amounts and names.",
+      titleKey: "howItWorks.step2Title",
+      descKey: "howItWorks.step2Desc",
     },
     {
       num: "03",
       icon: "⚡",
-      title: "काम हो जाएगा (Act)",
-      desc: "BoloBiz आपके business records को securely update करता है, posting to transaction ledgers and customer balances.",
+      titleKey: "howItWorks.step3Title",
+      descKey: "howItWorks.step3Desc",
     },
     {
       num: "04",
       icon: "📊",
-      title: "पूछिए और जानिए (Know)",
-      desc: "जब चाहें अपने business से सवाल पूछें। Ask 'Ramesh ka kitna udhaar baki hai?' to get database-derived calculations instantly.",
+      titleKey: "howItWorks.step4Title",
+      descKey: "howItWorks.step4Desc",
     },
   ];
 
   return (
     <section id="how-it-works" style={styles.section}>
       <div style={styles.container}>
-        <div style={styles.sectionHeader}>
-          <h2 style={styles.heading}>बिज़नेस चलाना अब बेहद आसान।</h2>
-          <p style={styles.subtext}>
-            BoloBiz wraps complex backend accounting features in a simple, conversational voice interface.
-          </p>
+        <div style={styles.sectionHeader} key={language} className="animate-fade-in">
+          <h2 style={styles.heading}>{t("howItWorks.heading")}</h2>
+          <p style={styles.subtext}>{t("howItWorks.subheading")}</p>
         </div>
 
         {/* Process Steps Stepper */}
@@ -72,8 +72,8 @@ export default function HowItWorks() {
                 <div style={styles.iconCircle}>
                   {st.icon}
                 </div>
-                <h3 style={styles.stepTitle}>{st.title}</h3>
-                <p style={styles.stepDesc}>{st.desc}</p>
+                <h3 style={styles.stepTitle}>{t(st.titleKey)}</h3>
+                <p style={styles.stepDesc}>{t(st.descKey)}</p>
               </div>
             </div>
           ))}
@@ -102,7 +102,7 @@ const styles = {
   heading: {
     fontSize: "2.5rem",
     fontWeight: 800,
-    color: "#fff",
+    color: "var(--text-primary)",
     marginBottom: "1rem",
     letterSpacing: "-1px",
   },
@@ -139,7 +139,7 @@ const styles = {
     left: "60%",
     width: "80%",
     height: "2px",
-    background: "linear-gradient(90deg, var(--accent-cyan) 0%, rgba(255,255,255,0.05) 100%)",
+    background: "linear-gradient(90deg, var(--accent-purple) 0%, rgba(0,0,0,0.05) 100%)",
     zIndex: 1,
     "@media(max-width: 900px)": {
       display: "none",
@@ -181,7 +181,7 @@ const styles = {
   stepTitle: {
     fontSize: "1.2rem",
     fontWeight: 700,
-    color: "#fff",
+    color: "var(--text-primary)",
     marginBottom: "0.75rem",
   },
   stepDesc: {

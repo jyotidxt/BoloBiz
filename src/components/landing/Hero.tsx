@@ -1,12 +1,14 @@
 "use client";
 
-import Link from "next/navigation"; // wait, standard Link is from "next/link", let's use that
 import LinkComponent from "next/link";
 import VoiceDemo from "./VoiceDemo";
+import { useLanguage } from "@/context/LanguageContext";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 
 export default function Hero() {
+  const { language, t, tArray } = useLanguage();
   const [observerRef, isVisible] = useIntersectionObserver({ threshold: 0.1 });
+  const bullets = tArray("hero.bullets");
 
   return (
     <section
@@ -21,46 +23,39 @@ export default function Hero() {
     >
       <div style={styles.container}>
         {/* Left Side: Product Details */}
-        <div style={styles.leftCol}>
+        <div style={styles.leftCol} key={language} className="animate-fade-in">
           <div style={styles.badge}>
-            <span style={styles.badgeSpark}>✨</span> AI Business Assistant
+            <span style={styles.badgeSpark}>✨</span> {t("hero.badge")}
           </div>
           
           <h1 style={styles.title}>
-            Run Your Business. <br />
-            <span style={styles.highlight}>बस बोलकर।</span>
+            {t("hero.title")} <br />
+            <span style={styles.highlight}>{t("hero.highlight")}</span>
           </h1>
           
           <p style={styles.subtitle}>
-            BoloBiz आपकी अपनी भाषा में आपके बिज़नेस को समझता है और आपकी मदद करता है बढ़ाने में।
+            {t("hero.subtitle")}
           </p>
 
-          {/* Bullet points from image */}
+          {/* Bullet points from translations */}
           <div style={styles.bulletsList}>
-            <div style={styles.bulletItem}>
-              <span style={styles.checkIcon}>✓</span> हिंदी, English और Hinglish में बात करें
-            </div>
-            <div style={styles.bulletItem}>
-              <span style={styles.checkIcon}>✓</span> अपने बिज़नेस का पूरा हिसाब रखें
-            </div>
-            <div style={styles.bulletItem}>
-              <span style={styles.checkIcon}>✓</span> AI से तुरंत जवाब पाएं
-            </div>
-            <div style={styles.bulletItem}>
-              <span style={styles.checkIcon}>✓</span> समय बचाएँ, तनाव कम करें
-            </div>
+            {bullets.map((bullet, idx) => (
+              <div key={idx} style={styles.bulletItem}>
+                <span style={styles.checkIcon}>✓</span> {bullet}
+              </div>
+            ))}
           </div>
 
           <div style={styles.ctaGroup}>
             <LinkComponent href="/signup" style={styles.primaryBtn}>
-              🎙️ बोलकर शुरुआत करें
+              {t("hero.ctaPrimary")}
             </LinkComponent>
             <a href="#how-it-works" style={styles.secondaryBtn}>
-              <span style={styles.playIcon}>▶</span> देखें कैसे काम करता है
+              <span style={styles.playIcon}>▶</span> {t("hero.ctaSecondary")}
             </a>
           </div>
 
-          {/* Social Proof ratings block from image */}
+          {/* Social Proof ratings block */}
           <div style={styles.ratingsBlock}>
             <div style={styles.avatarGroup}>
               <div style={{ ...styles.miniAvatar, background: "#f87171" }}>👨‍💼</div>
@@ -69,13 +64,13 @@ export default function Hero() {
               <div style={{ ...styles.miniAvatarMic, marginLeft: "-8px" }}>🎙️</div>
             </div>
             <div style={styles.ratingText}>
-              <strong>10,000+ खुश बिज़नेस मालिक</strong>
+              <strong>{t("hero.socialProof")}</strong>
               <div style={styles.stars}>★★★★★ <span style={styles.starText}>4.8/5</span></div>
             </div>
           </div>
         </div>
 
-        {/* Right Side: Interactive AI Assistant Simulator Terminal */}
+        {/* Right Side: Interactive Voice Demo */}
         <div style={styles.rightCol}>
           <VoiceDemo />
         </div>

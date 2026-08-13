@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { LanguageProvider } from "@/context/LanguageContext";
 
 export const metadata: Metadata = {
   title: "BoloBiz - AI Business Assistant | बस बोलकर बिज़नेस चलाओ",
@@ -16,7 +17,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <main id="app-root">{children}</main>
+        <LanguageProvider>
+          <main id="app-root">{children}</main>
+        </LanguageProvider>
       </body>
     </html>
   );

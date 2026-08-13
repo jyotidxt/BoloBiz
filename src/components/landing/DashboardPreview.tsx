@@ -1,47 +1,88 @@
 "use client";
 
+import { useLanguage } from "@/context/LanguageContext";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 
 export default function DashboardPreview() {
+  const { language } = useLanguage();
   const [observerRef, isVisible] = useIntersectionObserver({ threshold: 0.15 });
 
   const debtors = [
-    { name: "रमेश गुप्ता", amount: "₹2,350", color: "#fca5a5" },
-    { name: "अमित कुमार", amount: "₹1,800", color: "#fca5a5" },
-    { name: "सुरेश यादव", amount: "₹1,200", color: "#fca5a5" },
-    { name: "विक्रम सिंह", amount: "₹950", color: "#fca5a5" },
+    { 
+      name: language === "hi" ? "रमेश गुप्ता" : "Ramesh Gupta", 
+      amount: "₹2,350", 
+      color: "#fca5a5" 
+    },
+    { 
+      name: language === "hi" ? "अमित कुमार" : "Amit Kumar", 
+      amount: "₹1,800", 
+      color: "#fca5a5" 
+    },
+    { 
+      name: language === "hi" ? "सुरेश यादव" : "Suresh Yadav", 
+      amount: "₹1,200", 
+      color: "#fca5a5" 
+    },
+    { 
+      name: language === "hi" ? "विक्रम सिंह" : "Vikram Singh", 
+      amount: "₹950", 
+      color: "#fca5a5" 
+    },
   ];
 
   const activities = [
-    { title: "रमेश को ₹500 उधार दिया", time: "10:30 AM", type: "credit" },
-    { title: "अमित से ₹800 भुगतान प्राप्त", time: "10:15 AM", type: "payment" },
-    { title: "20 मैगी पैकेट स्टॉक में जोड़े", time: "09:40 AM", type: "stock" },
-    { title: "कोक 10 बोतल स्टॉक में जोड़ी", time: "09:20 AM", type: "stock" },
+    { 
+      title: language === "hi" ? "रमेश को ₹500 उधार दिया" : "Gave ₹500 credit to Ramesh", 
+      time: "10:30 AM", 
+      type: "credit" 
+    },
+    { 
+      title: language === "hi" ? "अमित से ₹800 भुगतान प्राप्त" : "Received ₹800 payment from Amit", 
+      time: "10:15 AM", 
+      type: "payment" 
+    },
+    { 
+      title: language === "hi" ? "20 मैगी पैकेट स्टॉक में जोड़े" : "Added 20 Maggi packets to stock", 
+      time: "09:40 AM", 
+      type: "stock" 
+    },
+    { 
+      title: language === "hi" ? "कोक 10 बोतल स्टॉक में जोड़ी" : "Added 10 Coke bottles to stock", 
+      time: "09:20 AM", 
+      type: "stock" 
+    },
   ];
 
   return (
     <section id="dashboard-preview" style={styles.section}>
       <div style={styles.container}>
         {/* Left Side: Product Intro */}
-        <div style={styles.leftCol}>
-          <div style={styles.badgePill}>स्मार्ट डैशबोर्ड</div>
-          <h2 style={styles.heading}>अपने बिज़नेस पर पूरी नज़र रखें</h2>
+        <div style={styles.leftCol} key={language} className="animate-fade-in">
+          <div style={styles.badgePill}>
+            {language === "hi" ? "स्मार्ट डैशबोर्ड" : "Smart Dashboard"}
+          </div>
+          <h2 style={styles.heading}>
+            {language === "hi" ? "अपने बिज़नेस पर पूरी नज़र रखें" : "Keep Total Track of Your Business"}
+          </h2>
           <p style={styles.subtext}>
-            क्लियर डैशबोर्ड और आसान रिपोर्ट्स के साथ अपने बिज़नेस को बेहतर तरीके से समझें।
+            {language === "hi" 
+              ? "क्लियर डैशबोर्ड और आसान रिपोर्ट्स के साथ अपने बिज़नेस को बेहतर तरीके से समझें।"
+              : "Understand your business better with simple charts, stock statuses, and clear reports."
+            }
           </p>
 
           <div style={styles.checkList}>
             <div style={styles.checkItem}>
-              <span style={styles.checkIcon}>✓</span> आज की बिक्री और भुगतान
+              <span style={styles.checkIcon}>✓</span> {language === "hi" ? "आज की बिक्री और भुगतान" : "Today's Sales & Payments"}
             </div>
             <div style={styles.checkItem}>
-              <span style={styles.checkIcon}>✓</span> बकाया राशि की स्थिति
+              <span style={styles.checkIcon}>✓</span> {language === "hi" ? "बकाया राशि की स्थिति" : "Outstanding Balances Status"}
             </div>
             <div style={styles.checkItem}>
-              <span style={styles.checkIcon}>✓</span> लो स्टॉक अलर्ट
+              <span style={styles.checkIcon}>✓</span> {language === "hi" ? "लो स्टॉक अलर्ट" : "Low Stock Warnings"}
             </div>
             <div style={styles.checkItem}>
-              <span style={styles.checkIcon}>✓</span> हाल की गतिविधियां
+              <span style={styles.checkIcon}>✓</span> {language === "hi" ? "हाल की गतिविधियां" : "Recent Activity Audits"}
             </div>
           </div>
         </div>
@@ -65,7 +106,7 @@ export default function DashboardPreview() {
                 <span style={{ ...styles.windowDot, backgroundColor: "#27c93f" }}></span>
               </div>
               <div style={styles.windowHeaderTitle}>
-                🏬 किरण स्टोर · BoloBiz Control Panel
+                {language === "hi" ? "🏬 किरण स्टोर · BoloBiz कंट्रोल पैनल" : "🏬 Kirana Store · BoloBiz Control Panel"}
               </div>
               <div style={{ width: "40px" }}></div>
             </div>
@@ -73,16 +114,32 @@ export default function DashboardPreview() {
             <div style={styles.windowLayout}>
               {/* App Sidebar */}
               <aside style={styles.sidebar}>
-                <div style={styles.sidebarBrand}>🎙️ BoloBiz</div>
+                <div style={styles.sidebarBrand}>🎙_ BoloBiz</div>
                 <nav style={styles.sidebarNav}>
-                  <div style={styles.activeSidebarLink}>📊 डैशबोर्ड</div>
-                  <div style={styles.sidebarLink}>👥 ग्राहक</div>
-                  <div style={styles.sidebarLink}>📈 बिक्री</div>
-                  <div style={styles.sidebarLink}>📦 इन्वेंट्री</div>
-                  <div style={styles.sidebarLink}>💸 लेन-देन</div>
-                  <div style={styles.sidebarLink}>👛 खर्च</div>
-                  <div style={styles.sidebarLink}>📑 रिपोर्ट्स</div>
-                  <div style={styles.sidebarLink}>⚙️ सेटिंग्स</div>
+                  <div style={styles.activeSidebarLink}>
+                    📊 {language === "hi" ? "डैशबोर्ड" : "Dashboard"}
+                  </div>
+                  <div style={styles.sidebarLink}>
+                    👥 {language === "hi" ? "ग्राहक" : "Customers"}
+                  </div>
+                  <div style={styles.sidebarLink}>
+                    📈 {language === "hi" ? "बिक्री" : "Sales"}
+                  </div>
+                  <div style={styles.sidebarLink}>
+                    📦 {language === "hi" ? "इन्वेंट्री" : "Inventory"}
+                  </div>
+                  <div style={styles.sidebarLink}>
+                    💸 {language === "hi" ? "लेन-देन" : "Transactions"}
+                  </div>
+                  <div style={styles.sidebarLink}>
+                    👛 {language === "hi" ? "खर्च" : "Expenses"}
+                  </div>
+                  <div style={styles.sidebarLink}>
+                    📑 {language === "hi" ? "रिपोर्ट्स" : "Reports"}
+                  </div>
+                  <div style={styles.sidebarLink}>
+                    ⚙️ {language === "hi" ? "सेटिंग्स" : "Settings"}
+                  </div>
                 </nav>
               </aside>
 
@@ -90,35 +147,53 @@ export default function DashboardPreview() {
               <div style={styles.workspace}>
                 {/* Workspace Header */}
                 <div style={styles.workspaceHeader}>
-                  <div style={styles.searchBar}>🔍 Search...</div>
+                  <div style={styles.searchBar}>
+                    {language === "hi" ? "🔍 खोजें..." : "🔍 Search..."}
+                  </div>
                   <div style={styles.profileBox}>
                     <span>🔔</span>
                     <span style={styles.avatarMini}>🤵</span>
-                    <span>किरण स्टोर ∨</span>
+                    <span>{language === "hi" ? "किरण स्टोर ∨" : "Kirana Store ∨"}</span>
                   </div>
                 </div>
 
                 {/* Metrics Cards Grid */}
                 <div style={styles.metricsGrid}>
                   <div style={styles.metricCard}>
-                    <span style={styles.metricLabel}>आज की बिक्री</span>
+                    <span style={styles.metricLabel}>
+                      {language === "hi" ? "आज की बिक्री" : "Today's Sales"}
+                    </span>
                     <div style={styles.metricVal}>₹ 8,450</div>
-                    <span style={styles.metricTrendGreen}>▲ 12% कल से</span>
+                    <span style={styles.metricTrendGreen}>
+                      {language === "hi" ? "▲ 12% कल से" : "▲ 12% vs yesterday"}
+                    </span>
                   </div>
                   <div style={styles.metricCard}>
-                    <span style={styles.metricLabel}>प्राप्त भुगतान</span>
+                    <span style={styles.metricLabel}>
+                      {language === "hi" ? "प्राप्त भुगतान" : "Payments Received"}
+                    </span>
                     <div style={styles.metricVal}>₹ 2,100</div>
-                    <span style={styles.metricTrendGreen}>▲ 8% कल से</span>
+                    <span style={styles.metricTrendGreen}>
+                      {language === "hi" ? "▲ 8% कल से" : "▲ 8% vs yesterday"}
+                    </span>
                   </div>
                   <div style={styles.metricCard}>
-                    <span style={styles.metricLabel}>बकाया राशि</span>
+                    <span style={styles.metricLabel}>
+                      {language === "hi" ? "बकाया राशि" : "Outstanding Credit"}
+                    </span>
                     <div style={{ ...styles.metricVal, color: "var(--status-danger)" }}>₹ 18,750</div>
-                    <span style={styles.metricTrendPurple}>▲ 15% कल से</span>
+                    <span style={styles.metricTrendPurple}>
+                      {language === "hi" ? "▲ 15% कल से" : "▲ 15% vs yesterday"}
+                    </span>
                   </div>
                   <div style={styles.metricCard}>
-                    <span style={styles.metricLabel}>कुल खर्च</span>
+                    <span style={styles.metricLabel}>
+                      {language === "hi" ? "कुल खर्च" : "Total Expenses"}
+                    </span>
                     <div style={styles.metricVal}>₹ 3,240</div>
-                    <span style={styles.metricTrendRed}>▼ 5% कल से</span>
+                    <span style={styles.metricTrendRed}>
+                      {language === "hi" ? "▼ 5% कल से" : "▼ 5% vs yesterday"}
+                    </span>
                   </div>
                 </div>
 
@@ -127,8 +202,12 @@ export default function DashboardPreview() {
                   {/* Debtors List */}
                   <div style={styles.panel}>
                     <div style={styles.panelHeaderRow}>
-                      <h4 style={styles.panelTitle}>बकाया राशि वाले ग्राहक</h4>
-                      <span style={styles.panelLink}>सभी देखें</span>
+                      <h4 style={styles.panelTitle}>
+                        {language === "hi" ? "बकाया राशि वाले ग्राहक" : "Outstanding Customers"}
+                      </h4>
+                      <span style={styles.panelLink}>
+                        {language === "hi" ? "सभी देखें" : "See All"}
+                      </span>
                     </div>
                     <div style={styles.panelList}>
                       {debtors.map((item, idx) => (
@@ -146,8 +225,12 @@ export default function DashboardPreview() {
                   {/* Activity History */}
                   <div style={styles.panel}>
                     <div style={styles.panelHeaderRow}>
-                      <h4 style={styles.panelTitle}>हाल की गतिविधियां</h4>
-                      <span style={styles.panelLink}>सभी देखें</span>
+                      <h4 style={styles.panelTitle}>
+                        {language === "hi" ? "हाल की गतिविधियां" : "Recent Activity"}
+                      </h4>
+                      <span style={styles.panelLink}>
+                        {language === "hi" ? "सभी देखें" : "See All"}
+                      </span>
                     </div>
                     <div style={styles.panelList}>
                       {activities.map((act, idx) => (

@@ -1,11 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function Footer() {
+  const { language, setLanguage, t } = useLanguage();
+  const currentYear = new Date().getFullYear();
+
   return (
     <footer style={styles.footer}>
-      <div style={styles.container}>
+      <div style={styles.container} key={language} className="animate-fade-in">
         {/* Brand details */}
         <div style={styles.brandCol}>
           <Link href="/" style={styles.logo}>
@@ -13,8 +17,7 @@ export default function Footer() {
             <span style={styles.logoText}>BoloBiz</span>
           </Link>
           <p style={styles.brandDesc}>
-            आपकी भाषा में आपका बिज़नेस असिस्टेंट। <br />
-            बोलें और अपने बिज़नेस को आसान बनाएं।
+            {t("footer.desc")}
           </p>
           <div style={styles.socials}>
             <span style={styles.socialIcon}>📞</span> {/* Mock WhatsApp */}
@@ -27,35 +30,35 @@ export default function Footer() {
         {/* Links lists */}
         <div style={styles.linksGrid}>
           <div style={styles.col}>
-            <h4 style={styles.colTitle}>प्रोडक्ट</h4>
-            <a href="#features" style={styles.link}>फीचर्स</a>
-            <span style={styles.placeholderLink}>कीमतें</span>
-            <span style={styles.placeholderLink}>अपडेट्स</span>
-            <span style={styles.placeholderLink}>इंटीग्रेशन</span>
+            <h4 style={styles.colTitle}>{t("footer.prodColTitle")}</h4>
+            <a href="#features" style={styles.link}>{t("footer.features")}</a>
+            <span style={styles.placeholderLink}>{t("footer.pricing")}</span>
+            <span style={styles.placeholderLink}>{t("footer.updates")}</span>
+            <span style={styles.placeholderLink}>{t("footer.integrations")}</span>
           </div>
 
           <div style={styles.col}>
-            <h4 style={styles.colTitle}>कंपनी</h4>
-            <a href="#vision" style={styles.link}>हमारे बारे में</a>
-            <span style={styles.placeholderLink}>करियर</span>
-            <span style={styles.placeholderLink}>ब्लॉग</span>
-            <span style={styles.placeholderLink}>संपर्क करें</span>
+            <h4 style={styles.colTitle}>{t("footer.compColTitle")}</h4>
+            <a href="#vision" style={styles.link}>{t("footer.about")}</a>
+            <span style={styles.placeholderLink}>{t("footer.careers")}</span>
+            <span style={styles.placeholderLink}>{t("footer.blog")}</span>
+            <span style={styles.placeholderLink}>{t("footer.contact")}</span>
           </div>
 
           <div style={styles.col}>
-            <h4 style={styles.colTitle}>सहायता</h4>
-            <span style={styles.placeholderLink}>हेल्प सेंटर</span>
-            <span style={styles.placeholderLink}>गोपनीयता नीति</span>
-            <span style={styles.placeholderLink}>नियम और शर्तें</span>
-            <span style={styles.placeholderLink}>रिफंड नीति</span>
+            <h4 style={styles.colTitle}>{t("footer.helpColTitle")}</h4>
+            <span style={styles.placeholderLink}>{t("footer.helpCenter")}</span>
+            <span style={styles.placeholderLink}>{t("footer.privacy")}</span>
+            <span style={styles.placeholderLink}>{t("footer.terms")}</span>
+            <span style={styles.placeholderLink}>{t("footer.refund")}</span>
           </div>
 
           <div style={styles.col}>
-            <h4 style={styles.colTitle}>हमारे साथ जुड़ें</h4>
+            <h4 style={styles.colTitle}>{t("footer.subscribeColTitle")}</h4>
             <div style={styles.subscribeBox}>
               <input
                 type="email"
-                placeholder="आपका ईमेल"
+                placeholder={t("footer.subscribePlaceholder")}
                 style={styles.subscribeInput}
                 disabled
               />
@@ -70,13 +73,20 @@ export default function Footer() {
       {/* Bottom Bar */}
       <div style={styles.bottomBar}>
         <div style={styles.bottomContainer}>
-          <span style={styles.copy}>© 2024 BoloBiz. सभी अधिकार सुरक्षित।</span>
+          <span style={styles.copy}>
+            © 2024 - {currentYear} {t("footer.copy")}
+          </span>
           
           <div style={styles.langSelector}>
             <span>🌐</span>
-            <select style={styles.langSelect} defaultValue="hindi">
-              <option value="hindi">हिंदी ∨</option>
-              <option value="english">English</option>
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value as any)}
+              style={styles.langSelect}
+              aria-label="Toggle Interface Language"
+            >
+              <option value="en">English</option>
+              <option value="hi">हिंदी ∨</option>
             </select>
           </div>
         </div>

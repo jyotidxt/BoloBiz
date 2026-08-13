@@ -1,8 +1,10 @@
 "use client";
 
+import { useLanguage } from "@/context/LanguageContext";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 
 export default function Vision() {
+  const { language, t } = useLanguage();
   const [observerRef, isVisible] = useIntersectionObserver({ threshold: 0.15 });
 
   return (
@@ -11,6 +13,8 @@ export default function Vision() {
         {/* Core Vision statement */}
         <div
           ref={observerRef}
+          key={language}
+          className="animate-fade-in"
           style={{
             ...styles.visionBlock,
             opacity: isVisible ? 1 : 0,
@@ -18,15 +22,14 @@ export default function Vision() {
             transition: "opacity var(--transition-slow), transform var(--transition-slow)",
           }}
         >
-          <div style={styles.badge}>💡 Core Philosophy</div>
-          <h2 style={styles.heading}>तकनीक आपके लिए आसान होनी चाहिए।</h2>
+          <div style={styles.badge}>{t("vision.badge")}</div>
+          <h2 style={styles.heading}>{t("vision.heading")}</h2>
           <blockquote style={styles.blockquote}>
-            “ आपको technology सीखने की ज़रूरत नहीं। <br />
-            <span style={styles.highlight}>Technology को आपको समझना चाहिए।</span> ”
+            “ {t("vision.blockquotePart1")} <br />
+            <span style={styles.highlight}>{t("vision.blockquoteHighlight")}</span> ”
           </blockquote>
           <p style={styles.description}>
-            We believe language and technical skill should never stand in the way of managing a business. 
-            BoloBiz is built to empower merchants, store owners, and freelancers to handle bookkeeping, stock cataloging, and audits using natural everyday voice commands.
+            {t("vision.description")}
           </p>
         </div>
 
@@ -34,20 +37,20 @@ export default function Vision() {
         <div style={styles.pathGrid}>
           <div className="glass-panel" style={styles.pathCard}>
             <div style={styles.pathIcon}>🏬</div>
-            <h4 style={styles.pathTitle}>Micro & Local Shop</h4>
-            <p style={styles.pathDesc}>Manage ledger entries, credits, sales, and products catalog instantly via voice interface. Ideal for kirana shops, stalls, and freelancers.</p>
+            <h4 style={styles.pathTitle}>{t("vision.path1Title")}</h4>
+            <p style={styles.pathDesc}>{t("vision.path1Desc")}</p>
           </div>
           <div className="glass-panel" style={styles.pathCard}>
             <div style={styles.pathIcon}>📈</div>
-            <h4 style={styles.pathTitle}>Growing Business</h4>
-            <p style={styles.pathDesc}>Get comprehensive reports, invite multiple employees to log entries, and track inventory stock alerts automatically.</p>
+            <h4 style={styles.pathTitle}>{t("vision.path2Title")}</h4>
+            <p style={styles.pathDesc}>{t("vision.path2Desc")}</p>
           </div>
           <div className="glass-panel" style={styles.pathCard}>
             <div style={styles.pathIcon}>🏢</div>
             <h4 style={styles.pathTitle}>
-              Multi-Branch Setup <span style={styles.comingSoon}>Coming Later</span>
+              {t("vision.path3Title")} <span style={styles.comingSoon}>{t("vision.comingSoon")}</span>
             </h4>
-            <p style={styles.pathDesc}>Aggregate metrics from multiple shops, monitor branch-level insights, and assign permissions for decentralized inventory teams.</p>
+            <p style={styles.pathDesc}>{t("vision.path3Desc")}</p>
           </div>
         </div>
       </div>
@@ -59,7 +62,7 @@ const styles = {
   section: {
     padding: "100px 2rem",
     backgroundColor: "var(--bg-secondary)",
-    borderTop: "1px solid rgba(255,255,255,0.02)",
+    borderTop: "1px solid rgba(0,0,0,0.02)",
     position: "relative" as const,
   },
   container: {
@@ -79,12 +82,12 @@ const styles = {
     alignItems: "center",
   },
   badge: {
-    background: "rgba(99, 102, 241, 0.1)",
-    border: "1px solid rgba(99, 102, 241, 0.3)",
+    background: "rgba(124, 58, 237, 0.08)",
+    border: "1px solid rgba(124, 58, 237, 0.15)",
     padding: "0.35rem 0.85rem",
     borderRadius: "15px",
     fontSize: "0.8rem",
-    color: "var(--accent-indigo)",
+    color: "var(--accent-purple)",
     fontWeight: 600,
     textTransform: "uppercase" as const,
     marginBottom: "1.5rem",
@@ -99,7 +102,7 @@ const styles = {
     fontSize: "2.75rem",
     fontWeight: 800,
     lineHeight: 1.25,
-    color: "#fff",
+    color: "var(--text-primary)",
     marginBottom: "2rem",
     letterSpacing: "-1px",
     "@media(max-width: 600px)": {
@@ -107,7 +110,7 @@ const styles = {
     },
   },
   highlight: {
-    background: "linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-indigo) 100%)",
+    background: "var(--accent-gradient)",
     WebkitBackgroundClip: "text",
     WebkitTextFillColor: "transparent",
   },
@@ -127,6 +130,9 @@ const styles = {
     textAlign: "left" as const,
     display: "flex",
     flexDirection: "column" as const,
+    background: "#ffffff",
+    border: "1px solid rgba(0,0,0,0.05)",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.02)",
   },
   pathIcon: {
     fontSize: "2.25rem",
@@ -135,14 +141,14 @@ const styles = {
   pathTitle: {
     fontSize: "1.1rem",
     fontWeight: 700,
-    color: "#fff",
+    color: "var(--text-primary)",
     marginBottom: "0.5rem",
     display: "flex",
     alignItems: "center",
     gap: "0.5rem",
   },
   comingSoon: {
-    background: "rgba(255, 255, 255, 0.05)",
+    background: "rgba(0, 0, 0, 0.05)",
     color: "var(--text-muted)",
     fontSize: "0.65rem",
     padding: "0.2rem 0.5rem",
