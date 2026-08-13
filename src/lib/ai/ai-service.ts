@@ -13,7 +13,7 @@ export interface AIServiceResponse {
 }
 
 export interface AIService {
-  sendMessage(message: string, sessionId?: string): Promise<AIServiceResponse>;
+  sendMessage(message: string, sessionId?: string, confirmed?: boolean): Promise<AIServiceResponse>;
 }
 
 export class GeminiAIService implements AIService {
@@ -27,7 +27,7 @@ export class GeminiAIService implements AIService {
     this.userId = userId;
   }
 
-  async sendMessage(message: string, sessionId?: string): Promise<AIServiceResponse> {
+  async sendMessage(message: string, sessionId?: string, confirmed?: boolean): Promise<AIServiceResponse> {
     // 1. Get or create session
     let chatSessionDb;
     if (sessionId) {
@@ -94,13 +94,14 @@ Your mission statement is: "Run Your Business. बस बोलकर."
 
 Response Rules:
 1. Match the user's language style.
-   - If they write in Hinglish (e.g. "Ramesh ko 500 udhaar diya"), reply in Hinglish (e.g. "Ramesh ke khate mein ₹500 ka udhaar add kar diya hai.").
-   - If they write in Hindi, reply in Hindi (e.g. "ठीक है! रमेश के खाते में ₹500 का उधार जोड़ दिया गया है!").
+   - If they write/speak in Hinglish (e.g. "Ramesh ko 500 udhaar diya"), reply in Hinglish (e.g. "Ramesh ke khate mein ₹500 ka udhaar add karne ke liye confirm karein.").
+   - If they write/speak in Hindi, reply in Hindi (e.g. "ठीक है! रमेश के खाते में ₹500 का उधार जोड़ने के लिए पुष्टि करें।").
    - If English, reply in English.
 2. Keep responses brief, concise, friendly, and under 2-3 sentences.
 3. You are an interface to a database. Never fabricate, guess, or hallucinate balances, stock counts, orders, sales, or names. If you need information, you MUST invoke a query tool.
 4. If a tool output returns "AMBIGUOUS_CUSTOMER", you must stop execution and ask the user to clarify which customer they mean by presenting the matches (include their redacted phone numbers).
-5. All operations must run using tools. Do not promise that an action is recorded unless the database service returns SUCCESS.
+5. If a tool output returns "CONFIRMATION_REQUIRED", explain that this is a sensitive database update and prompt the user to confirm the details.
+6. All operations must run using tools. Do not promise that an action is recorded unless the database service returns SUCCESS.
 
 CURRENT TENANT CONTEXT (From Database):
 - Today: ${currentDate}, ${currentTime}
@@ -282,7 +283,7 @@ ${productsContext || "(None yet)"}
       console.log(`AI invoking tool: ${toolName} with args:`, toolArgs);
 
       // Execute tool operation via the shared Business Service layer
-      const dbResult = await this.executeBusinessTool(toolName, toolArgs);
+      const dbResult = await this.executeBusinessTool(toolName, toolArgs, confirmed);
       executedToolDetails = { name: toolName, args: toolArgs, result: dbResult };
 
       // Feed results back to the model
@@ -321,9 +322,22 @@ ${productsContext || "(None yet)"}
     };
   }
 
-  // Business Service Mapper
-  private async executeBusinessTool(name: string, args: any): Promise<any> {
+  // Business Service Mapper (with confirmation checks)
+  private async executeBusinessTool(name: string, args: any, confirmed?: boolean): Promise<any> {
     try {
+      // 1. Enforce Confirmation constraints on sensitive mutations before executing
+      const sensitiveMutations = ["createCredit", "recordPayment", "createExpense", "addInventory"];
+      if (sensitiveMutations.includes(name) && confirmed !== true) {
+        return {
+          status: "CONFIRMATION_REQUIRED",
+          message: `This action requires manual confirmation before database execution.`,
+          actionDetails: {
+            tool: name,
+            args,
+          },
+        };
+      }
+
       switch (name) {
         case "createCustomer":
           return await businessService.createCustomerService(this.businessId, args.name, args.phone);

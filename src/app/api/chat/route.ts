@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     const { businessId, userId } = session;
 
     // 2. Parse request payload
-    const { message, sessionId: reqSessionId } = await request.json();
+    const { message, sessionId: reqSessionId, confirmed } = await request.json();
     if (!message) {
       return NextResponse.json({ error: "Message is required" }, { status: 400 });
     }
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     // 3. If Gemini API key is configured, execute production adapter pipeline
     if (GEMINI_API_KEY) {
       const aiService = new GeminiAIService(GEMINI_API_KEY, businessId, userId);
-      const response = await aiService.sendMessage(message, reqSessionId);
+      const response = await aiService.sendMessage(message, reqSessionId, !!confirmed);
       return NextResponse.json(response);
     }
 
@@ -48,8 +48,8 @@ export async function POST(request: Request) {
 
     const sessionId = chatSessionDb.id;
 
-    // Execute mock parser matching Hindi/Hinglish/English intents
-    const mockReply = await handleOfflineMockResponse(message, businessId);
+    // Execute mock parser matching Hindi/Hinglish/English intents (with mock confirmation state logic)
+    const mockReply = await handleOfflineMockResponse(message, businessId, !!confirmed);
 
     // Save User message
     await prisma.chatMessage.create({
@@ -80,8 +80,8 @@ export async function POST(request: Request) {
   }
 }
 
-// Helper to simulate NLU parsing and delegate queries to business services offline
-async function handleOfflineMockResponse(message: string, businessId: string) {
+// Helper to simulate NLU parsing and confirmation states offline
+async function handleOfflineMockResponse(message: string, businessId: string, confirmed: boolean) {
   const cleanMsg = message.toLowerCase().trim();
 
   // 1. Transaction matches (Credit / Payments / Sales / Expenses)
@@ -93,19 +93,27 @@ async function handleOfflineMockResponse(message: string, businessId: string) {
     const nameMatch = message.match(/(?:aaj|ko|liye|ne)\s+([A-Za-z]+)/i);
     if (nameMatch && nameMatch[1]) name = nameMatch[1];
 
+    if (!confirmed) {
+      return {
+        content: `ठीक है! ${name} के लिए ₹${amount} का उधार दर्ज करने से पहले कृपया नीचे पुष्टि करें।`,
+        toolCall: {
+          name: "createCredit",
+          args: { amount, customerName: name },
+          result: {
+            status: "CONFIRMATION_REQUIRED",
+            message: "Action requires manual confirmation before database execution.",
+            actionDetails: { tool: "createCredit", args: { amount, customerName: name } }
+          }
+        }
+      };
+    }
+
     const dbResult = await businessService.recordTransactionService(
       businessId,
       "CREDIT",
       amount,
       name
     );
-
-    if (dbResult.status === "AMBIGUOUS_CUSTOMER") {
-      return {
-        content: `आपके पास Ramesh नाम के ${dbResult.matches?.length} customer हैं। आप किस Ramesh की बात कर रहे हैं?`,
-        toolCall: { name: "createCredit", args: { amount, customerName: name }, result: dbResult },
-      };
-    }
 
     return {
       content: `ठीक है! मैंने ${name} के खाते में ₹${amount} का उधार (Credit) दर्ज कर लिया है। नया बकाया: ₹${dbResult.outstandingBalance || 0}।`,
@@ -122,6 +130,21 @@ async function handleOfflineMockResponse(message: string, businessId: string) {
     const nameMatch = message.match(/(?:aaj|ko|liye|ne)\s+([A-Za-z]+)/i);
     if (nameMatch && nameMatch[1]) name = nameMatch[1];
 
+    if (!confirmed) {
+      return {
+        content: `ठीक है! ${name} से ₹${amount} का भुगतान (Payment) दर्ज करने से पहले कृपया नीचे पुष्टि करें।`,
+        toolCall: {
+          name: "recordPayment",
+          args: { amount, customerName: name },
+          result: {
+            status: "CONFIRMATION_REQUIRED",
+            message: "Action requires manual confirmation before database execution.",
+            actionDetails: { tool: "recordPayment", args: { amount, customerName: name } }
+          }
+        }
+      };
+    }
+
     const dbResult = await businessService.recordTransactionService(
       businessId,
       "PAYMENT_RECEIVED",
@@ -130,7 +153,7 @@ async function handleOfflineMockResponse(message: string, businessId: string) {
     );
 
     return {
-      content: `Done! Ramesh से ₹${amount} का भुगतान (Payment) दर्ज कर लिया गया है। नया बकाया: ₹${dbResult.outstandingBalance || 0}।`,
+      content: `Done! ${name} से ₹${amount} का भुगतान (Payment) दर्ज कर लिया गया है। नया बकाया: ₹${dbResult.outstandingBalance || 0}।`,
       toolCall: { name: "recordPayment", args: { amount, customerName: name }, result: dbResult },
     };
   }
