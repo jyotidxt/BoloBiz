@@ -102,7 +102,9 @@ export default function ConversationDemo() {
   };
 
   useEffect(() => {
-    threadEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messages.length > 1) {
+      threadEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages, isTyping]);
 
   return (

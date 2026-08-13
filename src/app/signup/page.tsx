@@ -1,124 +1,154 @@
 "use client";
 
-import { useState } from "react";
+import { SignUp } from "@clerk/nextjs";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function SignupPage() {
-  const router = useRouter();
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    businessName: "",
-  });
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [isDark, setIsDark] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
+  useEffect(() => {
+    const checkTheme = () => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    };
+    checkTheme();
+    window.addEventListener("theme-change", checkTheme);
+    return () => window.removeEventListener("theme-change", checkTheme);
+  }, []);
 
-    try {
-      const res = await fetch("/api/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Something went wrong");
-      }
-
-      // Successful signup, redirect to dashboard
-      router.push("/dashboard");
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const appearanceConfig = isDark ? darkAppearance : lightAppearance;
 
   return (
     <div style={styles.container}>
-      <div className="glass-panel" style={styles.card}>
+      <div style={styles.card}>
         <div style={styles.header}>
           <Link href="/" style={styles.logo}>
             🎙️ BoloBiz
           </Link>
-          <h2 style={styles.title}>Create your account</h2>
+          <h2 style={styles.title}>Create Your Account</h2>
           <p style={styles.subtitle}>Register your business to get started</p>
         </div>
 
-        {error && <div style={styles.errorAlert}>{error}</div>}
-
-        <form onSubmit={handleSubmit} style={styles.form}>
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>Your Name</label>
-            <input
-              type="text"
-              required
-              placeholder="e.g., Jyoti Sharma"
-              style={styles.input}
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            />
-          </div>
-
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>Business Name</label>
-            <input
-              type="text"
-              required
-              placeholder="e.g., Sharma Kirana Store"
-              style={styles.input}
-              value={formData.businessName}
-              onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
-            />
-          </div>
-
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>Email Address</label>
-            <input
-              type="email"
-              required
-              placeholder="name@business.com"
-              style={styles.input}
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            />
-          </div>
-
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>Password</label>
-            <input
-              type="password"
-              required
-              placeholder="••••••••"
-              style={styles.input}
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            />
-          </div>
-
-          <button type="submit" disabled={loading} style={styles.submitBtn}>
-            {loading ? "Registering Account..." : "Create Account 🚀"}
-          </button>
-        </form>
-
-        <div style={styles.footer}>
-          Already have an account?{" "}
-          <Link href="/login" style={styles.link}>
-            Login here
-          </Link>
+        <div style={styles.clerkWrapper}>
+          <SignUp
+            routing="hash"
+            signInUrl="/login"
+            forceRedirectUrl="/dashboard"
+            appearance={appearanceConfig}
+          />
         </div>
       </div>
     </div>
   );
 }
+
+const darkAppearance = {
+  variables: {
+    colorPrimary: "#06b6d4",
+    colorBackground: "#0b0f19",
+    colorText: "#ffffff",
+    colorInputBackground: "rgba(255, 255, 255, 0.02)",
+    colorInputText: "#ffffff",
+    colorTextSecondary: "#9ca3af",
+    colorTextOnPrimaryBackground: "#ffffff",
+    borderRadius: "12px",
+  },
+  elements: {
+    cardBox: { boxShadow: "none", background: "transparent" },
+    card: {
+      backgroundColor: "rgba(13, 17, 28, 0.4)",
+      border: "1px solid rgba(255, 255, 255, 0.05)",
+      backdropFilter: "blur(20px)",
+      boxShadow: "0 10px 45px rgba(0,0,0,0.6)",
+      width: "100%",
+    },
+    headerTitle: { color: "#ffffff", fontSize: "1.25rem" },
+    headerSubtitle: { color: "#9ca3af" },
+    socialButtonsBlockButton: {
+      backgroundColor: "rgba(255, 255, 255, 0.03)",
+      borderColor: "rgba(255, 255, 255, 0.06)",
+      color: "#ffffff",
+      "&:hover": { backgroundColor: "rgba(255, 255, 255, 0.06)" }
+    },
+    formButtonPrimary: {
+      background: "linear-gradient(135deg, #06b6d4 0%, #6366f1 100%)",
+      border: "none",
+      boxShadow: "0 4px 15px rgba(6, 182, 212, 0.25)",
+      "&:hover": { opacity: 0.95 }
+    },
+    dividerLine: { backgroundColor: "rgba(255, 255, 255, 0.08)" },
+    dividerText: { color: "#6b7280" },
+    footerActionText: { color: "#9ca3af" },
+    footerActionLink: {
+      color: "#06b6d4",
+      fontWeight: 600,
+      "&:hover": { color: "#22d3ee" }
+    },
+    formFieldLabel: { color: "#9ca3af", fontWeight: 500 },
+    formFieldInput: {
+      border: "1px solid rgba(255, 255, 255, 0.08)",
+      color: "#ffffff",
+      background: "rgba(0, 0, 0, 0.2)",
+      "&:focus": { borderColor: "#06b6d4" }
+    },
+    identityPreviewText: { color: "#ffffff" },
+    identityPreviewEditButtonIcon: { color: "#06b6d4" }
+  }
+};
+
+const lightAppearance = {
+  variables: {
+    colorPrimary: "#7c3aed",
+    colorBackground: "#ffffff",
+    colorText: "#111827",
+    colorInputBackground: "#f9fafb",
+    colorInputText: "#111827",
+    colorTextSecondary: "#4b5563",
+    colorTextOnPrimaryBackground: "#ffffff",
+    borderRadius: "12px",
+  },
+  elements: {
+    cardBox: { boxShadow: "none", background: "transparent" },
+    card: {
+      backgroundColor: "rgba(255, 255, 255, 0.55)",
+      border: "1px solid rgba(0, 0, 0, 0.05)",
+      backdropFilter: "blur(20px)",
+      boxShadow: "0 10px 45px rgba(0,0,0,0.06)",
+      width: "100%",
+    },
+    headerTitle: { color: "#111827", fontSize: "1.25rem" },
+    headerSubtitle: { color: "#4b5563" },
+    socialButtonsBlockButton: {
+      backgroundColor: "#ffffff",
+      borderColor: "rgba(0, 0, 0, 0.08)",
+      color: "#111827",
+      "&:hover": { backgroundColor: "#f9fafb" }
+    },
+    formButtonPrimary: {
+      background: "linear-gradient(135deg, #7c3aed 0%, #db2777 100%)",
+      border: "none",
+      boxShadow: "0 4px 15px rgba(124, 58, 237, 0.2)",
+      "&:hover": { opacity: 0.95 }
+    },
+    dividerLine: { backgroundColor: "rgba(0, 0, 0, 0.08)" },
+    dividerText: { color: "#9ca3af" },
+    footerActionText: { color: "#4b5563" },
+    footerActionLink: {
+      color: "#7c3aed",
+      fontWeight: 600,
+      "&:hover": { color: "#6d28d9" }
+    },
+    formFieldLabel: { color: "#4b5563", fontWeight: 500 },
+    formFieldInput: {
+      border: "1px solid rgba(0, 0, 0, 0.08)",
+      color: "#111827",
+      background: "#ffffff",
+      "&:focus": { borderColor: "#7c3aed" }
+    },
+    identityPreviewText: { color: "#111827" },
+    identityPreviewEditButtonIcon: { color: "#7c3aed" }
+  }
+};
 
 const styles = {
   container: {
@@ -126,95 +156,49 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    background: "radial-gradient(circle at center, #111827 0%, #070a13 100%)",
+    background: "var(--bg-radial)",
     padding: "1.5rem",
+    transition: "background 0.3s ease",
   },
   card: {
     width: "100%",
-    maxWidth: "480px",
+    maxWidth: "500px",
     padding: "2.5rem",
-    boxShadow: "0 10px 40px rgba(0,0,0,0.5)",
+    background: "var(--glass-bg)",
+    border: "1px solid var(--glass-border)",
+    backdropFilter: "blur(30px)",
+    borderRadius: "24px",
+    boxShadow: "0 15px 50px var(--glass-shadow)",
+    display: "flex",
+    flexDirection: "column" as const,
+    alignItems: "center",
+    transition: "all 0.3s ease",
   },
   header: {
     textAlign: "center" as const,
-    marginBottom: "2rem",
+    marginBottom: "1rem",
+    width: "100%",
   },
   logo: {
-    fontSize: "1.75rem",
+    fontSize: "1.85rem",
     fontWeight: 800,
-    color: "#fff",
-    marginBottom: "1rem",
+    color: "var(--text-primary)",
+    marginBottom: "0.5rem",
     display: "inline-block",
   },
   title: {
-    fontSize: "1.5rem",
+    fontSize: "1.45rem",
     fontWeight: 700,
-    color: "#fff",
+    color: "var(--text-primary)",
     marginBottom: "0.25rem",
   },
   subtitle: {
     color: "var(--text-secondary)",
     fontSize: "0.9rem",
   },
-  errorAlert: {
-    background: "rgba(239, 68, 68, 0.15)",
-    border: "1px solid var(--status-danger)",
-    color: "#fca5a5",
-    padding: "0.75rem 1rem",
-    borderRadius: "8px",
-    fontSize: "0.9rem",
-    marginBottom: "1.5rem",
-    lineHeight: 1.4,
-  },
-  form: {
+  clerkWrapper: {
+    width: "100%",
     display: "flex",
-    flexDirection: "column" as const,
-    gap: "1.25rem",
-  },
-  inputGroup: {
-    display: "flex",
-    flexDirection: "column" as const,
-    gap: "0.5rem",
-  },
-  label: {
-    fontSize: "0.85rem",
-    fontWeight: 600,
-    color: "var(--text-secondary)",
-    letterSpacing: "0.5px",
-    textTransform: "uppercase" as const,
-  },
-  input: {
-    background: "rgba(255,255,255,0.03)",
-    border: "1px solid rgba(255,255,255,0.08)",
-    padding: "0.85rem 1rem",
-    borderRadius: "8px",
-    color: "#fff",
-    fontSize: "0.95rem",
-    transition: "all 0.2s ease",
-    ":focus": {
-      borderColor: "var(--accent-cyan)",
-      background: "rgba(255,255,255,0.05)",
-    },
-  },
-  submitBtn: {
-    background: "linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-indigo) 100%)",
-    color: "#fff",
-    fontWeight: 600,
-    padding: "0.95rem",
-    borderRadius: "8px",
-    cursor: "pointer",
-    transition: "all 0.2s ease",
-    marginTop: "0.5rem",
-    boxShadow: "0 4px 15px rgba(6, 182, 212, 0.2)",
-  },
-  footer: {
-    marginTop: "1.75rem",
-    textAlign: "center" as const,
-    color: "var(--text-secondary)",
-    fontSize: "0.9rem",
-  },
-  link: {
-    color: "var(--accent-cyan)",
-    fontWeight: 500,
+    justifyContent: "center",
   },
 };

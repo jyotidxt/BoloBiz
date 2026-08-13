@@ -28,6 +28,9 @@ model User {
   role                 String                 @default("OWNER") // OWNER, EMPLOYEE
   businessId           String
   business             Business               @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  emailVerified        Boolean                @default(false)
+  resetTokenHash       String?
+  resetTokenExpiresAt  DateTime?
   createdAt            DateTime               @default(now())
   updatedAt            DateTime               @updatedAt
   conversationSessions ConversationSession[]

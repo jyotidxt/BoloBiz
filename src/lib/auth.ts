@@ -1,8 +1,6 @@
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import { cookies } from "next/headers";
-
-const JWT_SECRET = process.env.JWT_SECRET || "fallback-secret-key-for-bolobiz-local-dev-12345";
+import { auth, currentUser } from "@clerk/nextjs/server";
+import { prisma } from "./db";
 
 export interface AuthSession {
   userId: string;
@@ -20,49 +18,75 @@ export async function comparePassword(password: string, hash: string): Promise<b
   return bcrypt.compare(password, hash);
 }
 
-export function signToken(session: AuthSession): string {
-  return jwt.sign(session, JWT_SECRET, { expiresIn: "7d" });
-}
-
-export function verifyToken(token: string): AuthSession | null {
-  try {
-    return jwt.verify(token, JWT_SECRET) as AuthSession;
-  } catch (error) {
-    return null;
-  }
-}
-
-// In Next.js 15, cookies() is asynchronous. We should await it.
+// Map Clerk session context to BoloBiz database models
 export async function getAuthSession(): Promise<AuthSession | null> {
   try {
-    const cookieStore = await import("next/headers").then((mod) => mod.cookies());
-    const token = cookieStore.get("bolobiz_token")?.value;
-    if (!token) return null;
-    return verifyToken(token);
-  } catch (e) {
+    const { userId: clerkUserId } = await auth();
+    if (!clerkUserId) return null;
+
+    const clerkUser = await currentUser();
+    if (!clerkUser) return null;
+
+    const email = clerkUser.emailAddresses[0]?.emailAddress;
+    if (!email) return null;
+
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // 1. Search for matching database record
+    let user = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+      include: { business: true },
+    });
+
+    // 2. Auto-provision user & business on first sign-in
+    if (!user) {
+      const name = `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim() || "BoloBiz Merchant";
+      const businessName = `${clerkUser.firstName || "My"}'s Kirana Store`;
+
+      user = await prisma.$transaction(async (tx) => {
+        const business = await tx.business.create({
+          data: {
+            name: businessName,
+            currency: "INR",
+          },
+        });
+
+        return await tx.user.create({
+          data: {
+            id: clerkUserId, // Use Clerk's ID to keep records uniquely identified
+            email: normalizedEmail,
+            name,
+            passwordHash: "clerk-authenticated", // Passwords handled by Clerk
+            role: "OWNER",
+            businessId: business.id,
+            emailVerified: true,
+          },
+          include: { business: true },
+        });
+      });
+      console.log(`🎉 Auto-provisioned user "${name}" and business "${businessName}" successfully.`);
+    }
+
+    return {
+      userId: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      businessId: user.businessId,
+    };
+  } catch (error) {
+    console.error("Error in getAuthSession with Clerk:", error);
     return null;
   }
 }
 
+// Deprecated custom session handlers - converted to safely importable no-ops to prevent compilation breaks
 export async function clearAuthSession() {
-  const cookieStore = await import("next/headers").then((mod) => mod.cookies());
-  cookieStore.set("bolobiz_token", "", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    expires: new Date(0),
-    path: "/",
-  });
+  // Clerk manages cookie clearing on client via SignOut triggers
+  return;
 }
 
 export async function setAuthSession(session: AuthSession) {
-  const token = signToken(session);
-  const cookieStore = await import("next/headers").then((mod) => mod.cookies());
-  cookieStore.set("bolobiz_token", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    maxAge: 60 * 60 * 24 * 7, // 7 days
-    path: "/",
-  });
+  // Clerk manages session generation internally
+  return;
 }
