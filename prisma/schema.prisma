@@ -11,6 +11,7 @@ model Business {
   id                    String                 @id @default(uuid())
   name                  String
   currency              String                 @default("INR")
+  timezone              String                 @default("Asia/Kolkata")
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
   users                 User[]
