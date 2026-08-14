@@ -130,9 +130,9 @@ const styles = {
     textAlign: "left" as const,
     display: "flex",
     flexDirection: "column" as const,
-    background: "#ffffff",
-    border: "1px solid rgba(0,0,0,0.05)",
-    boxShadow: "0 10px 30px rgba(0,0,0,0.02)",
+    background: "var(--glass-bg)",
+    border: "1px solid var(--glass-border)",
+    boxShadow: "0 10px 30px var(--glass-shadow)",
   },
   pathIcon: {
     fontSize: "2.25rem",
@@ -148,7 +148,7 @@ const styles = {
     gap: "0.5rem",
   },
   comingSoon: {
-    background: "rgba(0, 0, 0, 0.05)",
+    background: "var(--bg-tertiary)",
     color: "var(--text-muted)",
     fontSize: "0.65rem",
     padding: "0.2rem 0.5rem",

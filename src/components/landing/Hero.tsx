@@ -24,10 +24,6 @@ export default function Hero() {
       <div style={styles.container}>
         {/* Left Side: Product Details */}
         <div style={styles.leftCol} key={language} className="animate-fade-in">
-          <div style={styles.badge}>
-            <span style={styles.badgeSpark}>✨</span> {t("hero.badge")}
-          </div>
-          
           <h1 style={styles.title}>
             {t("hero.title")} <br />
             <span style={styles.highlight}>{t("hero.highlight")}</span>
