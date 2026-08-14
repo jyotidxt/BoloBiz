@@ -187,10 +187,10 @@ const styles = {
     borderBottom: "1px solid transparent",
   },
   headerScrolled: {
-    background: "rgba(255, 255, 255, 0.85)",
+    background: "var(--sidebar-bg)",
     backdropFilter: "blur(20px)",
     borderBottom: "1px solid var(--glass-border)",
-    boxShadow: "0 4px 30px rgba(0, 0, 0, 0.05)",
+    boxShadow: "0 4px 30px var(--glass-shadow)",
   },
   container: {
     display: "flex",
@@ -290,9 +290,9 @@ const styles = {
     position: "absolute" as const,
     top: "calc(100% + 8px)",
     right: 0,
-    background: "#ffffff",
+    background: "var(--bg-primary)",
     border: "1px solid var(--glass-border)",
-    boxShadow: "0 10px 30px rgba(0, 0, 0, 0.08)",
+    boxShadow: "0 10px 30px var(--glass-shadow)",
     borderRadius: "12px",
     padding: "0.5rem",
     listStyle: "none",
@@ -435,9 +435,9 @@ const styles = {
     cursor: "pointer",
   },
   mobileLangBtnActive: {
-    background: "#ffffff",
+    background: "var(--bg-primary)",
     color: "var(--accent-purple)",
-    boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
+    boxShadow: "0 2px 6px var(--glass-shadow)",
   },
   mobileStartBtn: {
     background: "var(--accent-gradient)",
