@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { formatCurrency } from "@/lib/utils/format";
 
 interface Insight {
   type: string;
@@ -176,7 +177,7 @@ export default function DashboardHome() {
             <span style={styles.cardLabel}>Today's Sales</span>
             <span style={styles.cardIcon}>💰</span>
           </div>
-          <div style={styles.cardValue}>₹{stats.salesToday.toLocaleString("en-IN")}</div>
+          <div style={styles.cardValue}>{formatCurrency(stats.salesToday)}</div>
           <div style={styles.cardFooter}>
             {stats.salesChangePercent > 0 ? (
               <span style={styles.trendUp}>↑ {stats.salesChangePercent}% vs yesterday</span>
@@ -195,10 +196,10 @@ export default function DashboardHome() {
             <span style={styles.cardLabel}>Today's Expenses</span>
             <span style={styles.cardIcon}>💸</span>
           </div>
-          <div style={styles.cardValue}>₹{stats.expensesToday.toLocaleString("en-IN")}</div>
+          <div style={styles.cardValue}>{formatCurrency(stats.expensesToday)}</div>
           <div style={styles.cardFooter}>
-            <span style={styles.trendFlat}>Weekly: ₹{stats.expensesThisWeek.toLocaleString("en-IN")}</span>
-            <div style={styles.subLabel}>Monthly: ₹{stats.expensesThisMonth.toLocaleString("en-IN")}</div>
+            <span style={styles.trendFlat}>Weekly: {formatCurrency(stats.expensesThisWeek)}</span>
+            <div style={styles.subLabel}>Monthly: {formatCurrency(stats.expensesThisMonth)}</div>
           </div>
         </div>
 
@@ -209,7 +210,7 @@ export default function DashboardHome() {
             <span style={styles.cardIcon}>📊</span>
           </div>
           <div style={{ ...styles.cardValue, color: stats.salesAfterExpensesToday >= 0 ? "var(--status-success)" : "var(--status-danger)" }}>
-            ₹{stats.salesAfterExpensesToday.toLocaleString("en-IN")}
+            {formatCurrency(stats.salesAfterExpensesToday)}
           </div>
           <div style={styles.cardFooter}>
             <span style={styles.trendFlat}>Today's net cash flow balance</span>
@@ -223,11 +224,11 @@ export default function DashboardHome() {
             <span style={styles.cardLabel}>Total Udhaar (Credit)</span>
             <span style={styles.cardIcon}>👥</span>
           </div>
-          <div style={styles.cardValue}>₹{stats.totalOutstandingCredit.toLocaleString("en-IN")}</div>
+          <div style={styles.cardValue}>{formatCurrency(stats.totalOutstandingCredit)}</div>
           <div style={styles.cardFooter}>
             <span style={styles.trendFlat}>Lent to {stats.debtorsCount} customer(s)</span>
             {stats.highestOutstandingCustomer && (
-              <div style={styles.subLabel}>Top: {stats.highestOutstandingCustomer.name} (₹{stats.highestOutstandingCustomer.balance})</div>
+              <div style={styles.subLabel}>Top: {stats.highestOutstandingCustomer.name} ({formatCurrency(stats.highestOutstandingCustomer.balance)})</div>
             )}
           </div>
         </div>
@@ -398,7 +399,7 @@ export default function DashboardHome() {
                       <div style={styles.listItemName}>{debtor.name}</div>
                       <div style={styles.listItemSubtitle}>Pending: {debtor.oldestPendingDays} day(s)</div>
                     </div>
-                    <div style={styles.listItemValue}>₹{debtor.balance.toLocaleString("en-IN")}</div>
+                    <div style={styles.listItemValue}>{formatCurrency(debtor.balance)}</div>
                   </div>
                 ))}
               </div>

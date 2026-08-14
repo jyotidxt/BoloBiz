@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatCurrency } from "@/lib/utils/format";
 
 interface Customer {
   id: string;
@@ -62,6 +63,12 @@ export default function TransactionsPage() {
   const handleAddTransaction = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!type || !amount) return;
+
+    const numericAmount = parseFloat(amount);
+    if (isNaN(numericAmount) || numericAmount <= 0) {
+      setError("Transaction amount must be greater than zero.");
+      return;
+    }
 
     setFormLoading(true);
     setError("");
@@ -225,7 +232,7 @@ export default function TransactionsPage() {
                   <td style={styles.td}>{tx.description || "—"}</td>
                   <td style={{ ...styles.td, ...getAmountStyle(tx.type) }}>
                     {tx.type === "CREDIT" || tx.type === "EXPENSE" || tx.type === "PURCHASE" ? "-" : "+"}
-                    ₹{tx.amount.toLocaleString("en-IN")}
+                    {formatCurrency(tx.amount)}
                   </td>
                 </tr>
               ))}

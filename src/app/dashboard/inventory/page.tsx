@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatCurrency } from "@/lib/utils/format";
 
 interface Product {
   id: string;
@@ -53,6 +54,28 @@ export default function InventoryPage() {
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !price) return;
+
+    // Validate fields as positive values
+    const numericPrice = parseFloat(price);
+    if (isNaN(numericPrice) || numericPrice <= 0) {
+      setError("Selling price must be greater than zero.");
+      return;
+    }
+    const numericCostPrice = costPrice ? parseFloat(costPrice) : 0;
+    if (isNaN(numericCostPrice) || numericCostPrice < 0) {
+      setError("Cost price cannot be negative.");
+      return;
+    }
+    const numericStock = stockQuantity ? parseFloat(stockQuantity) : 0;
+    if (isNaN(numericStock) || numericStock < 0) {
+      setError("Initial stock quantity cannot be negative.");
+      return;
+    }
+    const numericThreshold = lowStockThreshold ? parseFloat(lowStockThreshold) : 0;
+    if (isNaN(numericThreshold) || numericThreshold < 0) {
+      setError("Low stock threshold cannot be negative.");
+      return;
+    }
 
     setFormLoading(true);
     setError("");
@@ -273,11 +296,11 @@ export default function InventoryPage() {
                       <strong>{p.name}</strong>
                       {p.sku && <div style={styles.skuText}>SKU: {p.sku}</div>}
                     </td>
-                    <td style={styles.td}>₹{p.price.toFixed(2)}</td>
-                    <td style={styles.td}>₹{p.costPrice.toFixed(2)}</td>
+                    <td style={styles.td}>{formatCurrency(p.price)}</td>
+                    <td style={styles.td}>{formatCurrency(p.costPrice)}</td>
                     <td style={styles.td}>
                       <span style={{ color: margin >= 0 ? "var(--status-success)" : "var(--status-danger)" }}>
-                        ₹{margin.toFixed(2)} ({marginPercent.toFixed(0)}%)
+                        {formatCurrency(margin)} ({marginPercent.toFixed(0)}%)
                       </span>
                     </td>
                     <td style={styles.td}>

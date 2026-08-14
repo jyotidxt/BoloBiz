@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatCurrency } from "@/lib/utils/format";
 
 interface Customer {
   id: string;
@@ -42,6 +43,12 @@ export default function CustomersPage() {
   const handleAddCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
+
+    // Validate phone number format if provided
+    if (phone.trim() && !/^\+?[0-9\s\-]{8,15}$/.test(phone.trim())) {
+      setError("Please enter a valid phone number (8-15 digits).");
+      return;
+    }
 
     setFormLoading(true);
     setError("");
@@ -170,7 +177,7 @@ export default function CustomersPage() {
                   </td>
                   <td style={styles.td}>{c.phone || "—"}</td>
                   <td style={{ ...styles.td, ...getBalanceStyle(c.outstandingBalance) }}>
-                    ₹{c.outstandingBalance.toLocaleString("en-IN")}
+                    {formatCurrency(c.outstandingBalance)}
                   </td>
                   <td style={styles.td}>
                     {new Date(c.createdAt).toLocaleDateString("en-IN")}

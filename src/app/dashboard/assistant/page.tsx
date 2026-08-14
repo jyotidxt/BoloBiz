@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useVoiceRecognition } from "@/hooks/useVoiceRecognition";
 import { useVoiceSynthesis } from "@/hooks/useVoiceSynthesis";
+import { formatCurrency } from "@/lib/utils/format";
 
 interface ChatMessage {
   id: string;
@@ -419,20 +420,20 @@ export default function AssistantPage() {
                                   <>
                                     <div>Type: 🔴 CREDIT (Loan)</div>
                                     <div>To Customer: {msg.toolCallDetails.args.customerName}</div>
-                                    <div>Amount: ₹{msg.toolCallDetails.args.amount}</div>
+                                    <div>Amount: {formatCurrency(msg.toolCallDetails.args.amount)}</div>
                                   </>
                                 )}
                                 {msg.toolCallDetails.name === "recordPayment" && (
                                   <>
                                     <div>Type: 🟢 PAYMENT_RECEIVED</div>
                                     <div>From Customer: {msg.toolCallDetails.args.customerName}</div>
-                                    <div>Amount: ₹{msg.toolCallDetails.args.amount}</div>
+                                    <div>Amount: {formatCurrency(msg.toolCallDetails.args.amount)}</div>
                                   </>
                                 )}
                                 {msg.toolCallDetails.name === "createExpense" && (
                                   <>
                                     <div>Type: 💸 EXPENSE</div>
-                                    <div>Amount: ₹{msg.toolCallDetails.args.amount}</div>
+                                    <div>Amount: {formatCurrency(msg.toolCallDetails.args.amount)}</div>
                                     {msg.toolCallDetails.args.description && (
                                       <div>Note: {msg.toolCallDetails.args.description}</div>
                                     )}
@@ -450,10 +451,21 @@ export default function AssistantPage() {
                               {/* Confirm & Cancel UI controls */}
                               {pendingAction && (
                                 <div style={styles.confirmBtnRow}>
-                                  <button onClick={handleConfirmAction} style={styles.confirmBtn}>
-                                    ✅ {language === "hi" ? "पुष्टि करें" : "Confirm & Run"}
+                                  <button 
+                                    onClick={handleConfirmAction} 
+                                    disabled={voiceState === "THINKING" || voiceState === "PROCESSING"}
+                                    style={styles.confirmBtn}
+                                  >
+                                    {voiceState === "THINKING" || voiceState === "PROCESSING"
+                                      ? (language === "hi" ? "सहेज रहा है..." : "Saving...")
+                                      : `✅ ${language === "hi" ? "पुष्टि करें" : "Confirm & Run"}`
+                                    }
                                   </button>
-                                  <button onClick={handleCancelAction} style={styles.cancelBtn}>
+                                  <button 
+                                    onClick={handleCancelAction} 
+                                    disabled={voiceState === "THINKING" || voiceState === "PROCESSING"}
+                                    style={styles.cancelBtn}
+                                  >
                                     ✕ {language === "hi" ? "रद्द करें" : "Cancel"}
                                   </button>
                                 </div>
@@ -470,25 +482,25 @@ export default function AssistantPage() {
                                 msg.toolCallDetails.name === "recordPayment" ||
                                 msg.toolCallDetails.name === "createExpense") && (
                                 <>
-                                  <div><strong>Amount:</strong> ₹{msg.toolCallDetails.args.amount}</div>
+                                  <div><strong>Amount:</strong> {formatCurrency(msg.toolCallDetails.args.amount)}</div>
                                   {msg.toolCallDetails.args.customerName && (
                                     <div><strong>Customer:</strong> {msg.toolCallDetails.args.customerName}</div>
                                   )}
                                   {msg.toolCallDetails.result?.outstandingBalance !== undefined && (
                                     <div style={{ color: "var(--accent-purple)", marginTop: "0.25rem", fontWeight: 700 }}>
-                                      New Balance: ₹{msg.toolCallDetails.result.outstandingBalance}
+                                      New Balance: {formatCurrency(msg.toolCallDetails.result.outstandingBalance)}
                                     </div>
                                   )}
                                 </>
                               )}
                               {msg.toolCallDetails.name === "addInventory" && (
-                                <>
-                                  <div><strong>Product:</strong> {msg.toolCallDetails.args.productName}</div>
-                                  <div><strong>Quantity:</strong> {msg.toolCallDetails.args.quantity}</div>
-                                  {msg.toolCallDetails.result?.stockQuantity !== undefined && (
-                                    <div><strong>Updated Stock:</strong> {msg.toolCallDetails.result.stockQuantity}</div>
-                                  )}
-                                </>
+                                  <>
+                                    <div><strong>Product:</strong> {msg.toolCallDetails.args.productName}</div>
+                                    <div><strong>Quantity:</strong> {msg.toolCallDetails.args.quantity}</div>
+                                    {msg.toolCallDetails.result?.stockQuantity !== undefined && (
+                                      <div><strong>Updated Stock:</strong> {msg.toolCallDetails.result.stockQuantity}</div>
+                                    )}
+                                  </>
                               )}
                               {msg.toolCallDetails.name === "getInventory" && (
                                 <div>
@@ -502,7 +514,7 @@ export default function AssistantPage() {
                                 <div>
                                   <strong>Customer:</strong> {msg.toolCallDetails.args.customerName}
                                   {msg.toolCallDetails.result?.balance !== undefined && (
-                                    <div><strong>Outstanding Debt:</strong> ₹{msg.toolCallDetails.result.balance}</div>
+                                    <div><strong>Outstanding Debt:</strong> {formatCurrency(msg.toolCallDetails.result.balance)}</div>
                                   )}
                                 </div>
                               )}
