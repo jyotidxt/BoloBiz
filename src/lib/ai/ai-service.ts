@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 import { prisma } from "@/lib/db";
 import * as businessService from "../services/business";
+import * as analyticsService from "../services/analytics";
 
 export interface AIServiceResponse {
   content: string;
@@ -255,6 +256,11 @@ ${productsContext || "(None yet)"}
               description: "Get overall financial metrics (today's sales, expenses, and total outstanding credit).",
               parameters: { type: SchemaType.OBJECT, properties: {} },
             },
+            {
+              name: "getProactiveBusinessInsights",
+              description: "Retrieve comprehensive deterministic business analytics, sales change stats, debtors credit aging, low-stock lists, and proactive insight findings to answer performance or state inquiries.",
+              parameters: { type: SchemaType.OBJECT, properties: {} },
+            },
           ],
         },
       ],
@@ -407,6 +413,9 @@ ${productsContext || "(None yet)"}
 
         case "getBusinessSummary":
           return await businessService.getBusinessSummaryService(this.businessId);
+
+        case "getProactiveBusinessInsights":
+          return await analyticsService.getBusinessAnalyticsAndInsights(this.businessId);
 
         default:
           return { status: "ERROR", message: `Tool "${name}" is not supported.` };
