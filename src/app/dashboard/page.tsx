@@ -106,56 +106,6 @@ export default function DashboardHome() {
   // Detect empty state onboarding requirement
   const isEmptyBusiness = stats.totalCustomers === 0 && stats.totalProducts === 0;
 
-  if (isEmptyBusiness) {
-    return (
-      <div style={styles.container} className="animate-fade-in">
-        <div className="glass-panel" style={styles.welcomeBanner}>
-          <h2 style={styles.welcomeTitle}>Welcome to BoloBiz! 👋</h2>
-          <p style={styles.welcomeSubtitle}>Your voice-first assistant is ready. Let's get your business set up.</p>
-        </div>
-
-        <div className="glass-panel" style={styles.onboardingCard}>
-          <span style={styles.onboardingIcon}>🚀</span>
-          <h3 style={styles.onboardingTitle}>Getting Started Guide</h3>
-          <p style={styles.onboardingDesc}>
-            BoloBiz operates using natural speech and text. You can seed your database automatically by typing or talking.
-          </p>
-
-          <div style={styles.stepsList}>
-            <div style={styles.stepRow}>
-              <span style={styles.stepNum}>1</span>
-              <div>
-                <h4 style={styles.stepHeading}>Add Your Products</h4>
-                <p style={styles.stepText}>Say: <span style={styles.codeText}>"Add Maggi product price 20 rupees"</span> or click the button below.</p>
-              </div>
-            </div>
-
-            <div style={styles.stepRow}>
-              <span style={styles.stepNum}>2</span>
-              <div>
-                <h4 style={styles.stepHeading}>Add Your Customers</h4>
-                <p style={styles.stepText}>Say: <span style={styles.codeText}>"Create Ramesh customer phone 9876543210"</span></p>
-              </div>
-            </div>
-
-            <div style={styles.stepRow}>
-              <span style={styles.stepNum}>3</span>
-              <div>
-                <h4 style={styles.stepHeading}>Log Sales & Credit Ledger</h4>
-                <p style={styles.stepText}>Say: <span style={styles.codeText}>"Ramesh ko 500 rupaye udhaar diye"</span> or <span style={styles.codeText}>"aaj 1200 ka payment received hua"</span></p>
-              </div>
-            </div>
-          </div>
-
-          <div style={styles.onboardingActions}>
-            <Link href="/dashboard/assistant" style={styles.actionBtnPrimary}>🎙️ Open AI Assistant</Link>
-            <Link href="/dashboard/inventory" style={styles.actionBtnSecondary}>📦 Add Products Manual</Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   // Filter insights based on toggle
   const visibleInsights = showAllInsights ? stats.insights : stats.insights.slice(0, 3);
   
@@ -172,6 +122,51 @@ export default function DashboardHome() {
         </div>
         <div style={styles.timezoneBadge}>🕒 {stats.timezone}</div>
       </div>
+
+      {/* Conditional Onboarding Component (Compact Getting Started Guide) */}
+      {isEmptyBusiness && (
+        <div className="glass-panel" style={styles.compactOnboardingCard}>
+          <div style={styles.compactOnboardingHeader}>
+            <span style={styles.compactOnboardingIcon}>🚀</span>
+            <div>
+              <h3 style={styles.compactOnboardingTitle}>Getting Started Guide</h3>
+              <p style={styles.compactOnboardingDesc}>
+                BoloBiz is a voice-first assistant. You can manage your ledger simply by speaking or typing naturally in Hindi, Hinglish, or English to record sales, credit, and products.
+              </p>
+            </div>
+          </div>
+
+          <div style={styles.compactStepsGrid}>
+            <div style={styles.compactStepRow}>
+              <span style={styles.stepNumMini}>1</span>
+              <div>
+                <h4 style={styles.stepHeadingMini}>Add Products</h4>
+                <p style={styles.stepTextMini}>Say: <span style={styles.codeTextMini}>"Add Maggi price 20 rupees"</span></p>
+              </div>
+            </div>
+            <div style={styles.compactStepRow}>
+              <span style={styles.stepNumMini}>2</span>
+              <div>
+                <h4 style={styles.stepHeadingMini}>Add Customers</h4>
+                <p style={styles.stepTextMini}>Say: <span style={styles.codeTextMini}>"Create Ramesh customer"</span></p>
+              </div>
+            </div>
+            <div style={styles.compactStepRow}>
+              <span style={styles.stepNumMini}>3</span>
+              <div>
+                <h4 style={styles.stepHeadingMini}>Log Credit/Sales</h4>
+                <p style={styles.stepTextMini}>Say: <span style={styles.codeTextMini}>"Ramesh ko 500 udhaar diye"</span></p>
+              </div>
+            </div>
+          </div>
+
+          <div style={styles.compactOnboardingActions}>
+            <Link href="/dashboard/assistant" style={styles.actionBtnPrimaryMini}>🎙️ Open AI Assistant</Link>
+            <Link href="/dashboard/inventory" style={styles.actionBtnSecondaryMini}>📦 Add Products</Link>
+            <Link href="/dashboard/customers" style={styles.actionBtnSecondaryMini}>👥 Add Customers</Link>
+          </div>
+        </div>
+      )}
 
       {/* Metrics Grid */}
       <div style={styles.grid}>
@@ -789,104 +784,105 @@ const styles = {
     color: "var(--text-secondary)",
     fontSize: "0.9rem",
   },
-  onboardingCard: {
-    padding: "2.5rem",
-    borderRadius: "20px",
-    display: "flex",
-    flexDirection: "column" as const,
-    alignItems: "center",
-    textAlign: "center" as const,
-    gap: "1.25rem",
-  },
-  onboardingIcon: {
-    fontSize: "3.5rem",
-  },
-  onboardingTitle: {
-    fontSize: "1.45rem",
-    fontWeight: 800,
-    color: "var(--text-primary)",
-  },
-  onboardingDesc: {
-    fontSize: "0.95rem",
-    color: "var(--text-secondary)",
-    maxWidth: "500px",
-    lineHeight: 1.5,
-  },
-  stepsList: {
+  compactOnboardingCard: {
+    padding: "1.5rem",
+    borderRadius: "16px",
     display: "flex",
     flexDirection: "column" as const,
     gap: "1.25rem",
+    background: "linear-gradient(135deg, rgba(124, 58, 237, 0.04) 0%, rgba(219, 39, 119, 0.04) 100%)",
+    border: "1px solid rgba(124, 58, 237, 0.15)",
     textAlign: "left" as const,
-    maxWidth: "460px",
-    width: "100%",
-    margin: "1rem 0",
+    boxShadow: "0 8px 32px var(--glass-shadow)",
   },
-  stepRow: {
+  compactOnboardingHeader: {
     display: "flex",
     gap: "1rem",
-    alignItems: "flex-start",
+    alignItems: "center",
   },
-  stepNum: {
+  compactOnboardingIcon: {
+    fontSize: "2rem",
+  },
+  compactOnboardingTitle: {
+    fontSize: "1.2rem",
+    fontWeight: 800,
+    color: "var(--text-primary)",
+    marginBottom: "0.15rem",
+  },
+  compactOnboardingDesc: {
+    fontSize: "0.85rem",
+    color: "var(--text-secondary)",
+    lineHeight: 1.4,
+  },
+  compactStepsGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+    gap: "1rem",
+    width: "100%",
+  },
+  compactStepRow: {
+    display: "flex",
+    gap: "0.75rem",
+    alignItems: "flex-start",
+    background: "var(--bg-secondary)",
+    padding: "0.85rem",
+    borderRadius: "10px",
+    border: "1px solid var(--glass-border)",
+  },
+  stepNumMini: {
     background: "rgba(124, 58, 237, 0.08)",
     border: "1px solid rgba(124, 58, 237, 0.15)",
     color: "var(--accent-purple)",
-    width: "28px",
-    height: "28px",
+    width: "22px",
+    height: "22px",
     borderRadius: "50%",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     fontWeight: 700,
-    fontSize: "0.85rem",
+    fontSize: "0.75rem",
     flexShrink: 0,
+    marginTop: "0.1rem",
   },
-  stepHeading: {
-    fontSize: "0.95rem",
+  stepHeadingMini: {
+    fontSize: "0.85rem",
     fontWeight: 700,
     color: "var(--text-primary)",
-    marginBottom: "0.15rem",
+    marginBottom: "0.1rem",
   },
-  stepText: {
-    fontSize: "0.85rem",
+  stepTextMini: {
+    fontSize: "0.75rem",
     color: "var(--text-secondary)",
-    lineHeight: 1.4,
   },
-  codeText: {
+  codeTextMini: {
     fontFamily: "monospace",
-    background: "var(--bg-secondary)",
-    padding: "0.1rem 0.3rem",
+    background: "var(--bg-primary)",
+    padding: "0.05rem 0.2rem",
     borderRadius: "4px",
-    fontSize: "0.8rem",
+    fontSize: "0.75rem",
     color: "var(--accent-pink)",
   },
-  onboardingActions: {
+  compactOnboardingActions: {
     display: "flex",
-    gap: "1rem",
-    width: "100%",
-    maxWidth: "420px",
-    marginTop: "0.5rem",
-    "@media(max-width: 500px)": {
-      flexDirection: "column" as const,
-    },
+    gap: "0.75rem",
+    flexWrap: "wrap" as const,
   },
-  actionBtnPrimary: {
-    flex: 1,
+  actionBtnPrimaryMini: {
     background: "var(--accent-gradient)",
     color: "#fff",
-    padding: "0.75rem 1.5rem",
-    borderRadius: "20px",
-    fontSize: "0.9rem",
+    padding: "0.5rem 1.25rem",
+    borderRadius: "15px",
+    fontSize: "0.8rem",
     fontWeight: 700,
-    boxShadow: "0 4px 12px rgba(219, 39, 119, 0.25)",
+    boxShadow: "0 4px 12px rgba(219, 39, 119, 0.2)",
   },
-  actionBtnSecondary: {
-    flex: 1,
+  actionBtnSecondaryMini: {
     background: "var(--bg-secondary)",
     border: "1px solid var(--glass-border)",
     color: "var(--text-primary)",
-    padding: "0.75rem 1.5rem",
-    borderRadius: "20px",
-    fontSize: "0.9rem",
+    padding: "0.5rem 1.25rem",
+    borderRadius: "15px",
+    fontSize: "0.8rem",
     fontWeight: 600,
   },
 };
