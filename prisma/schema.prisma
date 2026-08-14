@@ -47,6 +47,8 @@ model Customer {
   transactions       Transaction[]
   createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
+
+  @@index([businessId])
 }
 
 model Product {
@@ -62,6 +64,8 @@ model Product {
   transactionItems  TransactionItem[]
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
+
+  @@index([businessId])
 }
 
 model Transaction {
@@ -76,6 +80,10 @@ model Transaction {
   items        TransactionItem[]
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
+
+  @@index([businessId])
+  @@index([customerId])
+  @@index([createdAt])
 }
 
 model TransactionItem {
@@ -86,6 +94,9 @@ model TransactionItem {
   product       Product     @relation(fields: [productId], references: [id], onDelete: Restrict)
   quantity      Float
   unitPrice     Float
+
+  @@index([transactionId])
+  @@index([productId])
 }
 
 model ConversationSession {
@@ -97,6 +108,8 @@ model ConversationSession {
   messages   ChatMessage[]
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt
+
+  @@index([businessId])
 }
 
 model ChatMessage {
@@ -107,4 +120,6 @@ model ChatMessage {
   content          String
   toolCallDetails  String?             // JSON string storing details of the tool executed, if any
   createdAt        DateTime            @default(now())
+
+  @@index([sessionId])
 }

@@ -114,7 +114,7 @@ ${productsContext || "(None yet)"}
 
     // 5. Initialize model and tool definitions
     const model = this.genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-3.5-flash",
       systemInstruction,
       tools: [
         {
@@ -274,8 +274,15 @@ ${productsContext || "(None yet)"}
 
     const chat = model.startChat({ history });
 
-    // 7. Send message to Gemini
-    let result = await chat.sendMessage(message);
+    // 7. Send message to Gemini with network/failure boundaries
+    let result;
+    try {
+      result = await chat.sendMessage(message);
+    } catch (err) {
+      console.error("Gemini AI API connection failed:", err);
+      throw new Error("AI assistant is currently offline. Please type or speak again.");
+    }
+
     let finalResponseText = "";
     let executedToolDetails = null;
 
@@ -292,15 +299,21 @@ ${productsContext || "(None yet)"}
       const dbResult = await this.executeBusinessTool(toolName, toolArgs, confirmed);
       executedToolDetails = { name: toolName, args: toolArgs, result: dbResult };
 
-      // Feed results back to the model
-      const toolFollowUp = await chat.sendMessage([
-        {
-          functionResponse: {
-            name: toolName,
-            response: dbResult,
+      // Feed results back to the model with safety fail-safes
+      let toolFollowUp;
+      try {
+        toolFollowUp = await chat.sendMessage([
+          {
+            functionResponse: {
+              name: toolName,
+              response: dbResult,
+            },
           },
-        },
-      ]);
+        ]);
+      } catch (err) {
+        console.error("Gemini AI API follow-up failed:", err);
+        throw new Error("AI assistant failed to process action details. Please try again.");
+      }
 
       finalResponseText = toolFollowUp.response.text();
     } else {

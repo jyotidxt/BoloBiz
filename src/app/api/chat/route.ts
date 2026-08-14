@@ -74,7 +74,7 @@ export async function POST(request: Request) {
   } catch (error: any) {
     console.error("Chat route handler error:", error);
     return NextResponse.json(
-      { error: error.message || "An unexpected error occurred." },
+      { error: "Something went wrong. Please try again." },
       { status: 500 }
     );
   }
