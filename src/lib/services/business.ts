@@ -19,14 +19,17 @@ export async function resolveCustomer(businessId: string, customerName: string) 
   }
 
   if (matches.length > 1) {
-    // If there is an exact case-insensitive match, resolve it immediately
-    const exactMatch = matches.find(
+    // Filter to find exact case-insensitive name matches
+    const exactMatches = matches.filter(
       (c) => c.name.toLowerCase() === customerName.toLowerCase()
     );
-    if (exactMatch) {
-      return { status: "FOUND", customer: exactMatch };
+    
+    // Only resolve immediately if there is exactly one exact match
+    if (exactMatches.length === 1) {
+      return { status: "FOUND", customer: exactMatches[0] };
     }
 
+    // Otherwise, treat the matches as ambiguous and let the user select
     return {
       status: "AMBIGUOUS",
       matches: matches.map((m) => ({
