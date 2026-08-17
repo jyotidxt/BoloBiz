@@ -10,6 +10,9 @@ export interface Insight {
 }
 
 export interface BusinessAnalyticsSummary {
+  businessName: string;
+  ownerName: string;
+  totalTransactions: number;
   timezone: string;
   salesToday: number;
   salesTodayCount: number;
@@ -183,8 +186,15 @@ export async function getBusinessAnalyticsAndInsights(businessId: string): Promi
   // Fetch business timezone settings
   const business = await prisma.business.findUnique({
     where: { id: businessId },
-    select: { timezone: true },
+    select: { timezone: true, name: true },
   });
+
+  const owner = await prisma.user.findFirst({
+    where: { businessId, role: "OWNER" },
+    select: { name: true },
+  });
+
+  const totalTransactions = await prisma.transaction.count({ where: { businessId } });
 
   const timezone = business?.timezone || "Asia/Kolkata";
   const ranges = getDateRangesInTimezone(timezone);
@@ -462,6 +472,9 @@ export async function getBusinessAnalyticsAndInsights(businessId: string): Promi
   insights.sort((a, b) => a.priority - b.priority);
 
   return {
+    businessName: business?.name || "My Business",
+    ownerName: owner?.name || "BoloBiz Merchant",
+    totalTransactions,
     timezone,
     salesToday,
     salesTodayCount: todaySales._count.id || 0,

@@ -32,6 +32,9 @@ interface LowStock {
 }
 
 interface BIStats {
+  businessName: string;
+  ownerName: string;
+  totalTransactions: number;
   timezone: string;
   salesToday: number;
   salesTodayCount: number;
@@ -66,6 +69,12 @@ export default function DashboardHome() {
   const [error, setError] = useState("");
   const [showAllInsights, setShowAllInsights] = useState(false);
 
+  // Setup form states
+  const [shopName, setShopName] = useState("");
+  const [ownerName, setOwnerName] = useState("");
+  const [setupLoading, setSetupLoading] = useState(false);
+  const [setupError, setSetupError] = useState("");
+
   const fetchInsights = async () => {
     try {
       const res = await fetch("/api/dashboard/insights");
@@ -84,6 +93,39 @@ export default function DashboardHome() {
   useEffect(() => {
     fetchInsights();
   }, []);
+
+  useEffect(() => {
+    if (stats) {
+      if (stats.businessName && (stats.businessName.endsWith("'s Kirana Store") || stats.businessName === "My's Kirana Store")) {
+        setShopName(stats.businessName);
+      }
+      if (stats.ownerName) {
+        setOwnerName(stats.ownerName);
+      }
+    }
+  }, [stats]);
+
+  const handleSetupSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSetupError("");
+    setSetupLoading(true);
+
+    try {
+      const res = await fetch("/api/dashboard/setup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ shopName, ownerName }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to update business profile");
+      }
+      window.location.reload();
+    } catch (err: any) {
+      setSetupError(err.message);
+      setSetupLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -104,8 +146,15 @@ export default function DashboardHome() {
     );
   }
 
+  // Heuristic: setup is required if stats has no transactions, no customers, no products, and name ends with default pattern
+  const isSetupRequired = 
+    stats.totalCustomers === 0 && 
+    stats.totalProducts === 0 && 
+    stats.totalTransactions === 0 && 
+    (stats.businessName.endsWith("'s Kirana Store") || stats.businessName === "My's Kirana Store");
+
   // Detect empty state onboarding requirement
-  const isEmptyBusiness = stats.totalCustomers === 0 && stats.totalProducts === 0;
+  const isEmptyBusiness = stats.totalCustomers === 0 && stats.totalProducts === 0 && stats.totalTransactions === 0;
 
   // Filter insights based on toggle
   const visibleInsights = showAllInsights ? stats.insights : stats.insights.slice(0, 3);
@@ -124,317 +173,378 @@ export default function DashboardHome() {
         <div style={styles.timezoneBadge}>🕒 {stats.timezone}</div>
       </div>
 
-      {/* Conditional Onboarding Component (Compact Getting Started Guide) */}
-      {isEmptyBusiness && (
-        <div className="glass-panel" style={styles.compactOnboardingCard}>
-          <div style={styles.compactOnboardingHeader}>
-            <span style={styles.compactOnboardingIcon}>🚀</span>
+      {isSetupRequired ? (
+        <div className="glass-panel animate-fade-in" style={styles.setupCard}>
+          <div style={styles.setupHeader}>
+            <span style={styles.setupIcon}>🏪</span>
             <div>
-              <h3 style={styles.compactOnboardingTitle}>Getting Started Guide</h3>
-              <p style={styles.compactOnboardingDesc}>
-                BoloBiz is a voice-first assistant. You can manage your ledger simply by speaking or typing naturally in Hindi, Hinglish, or English to record sales, credit, and products.
+              <h3 style={styles.setupTitle}>Setup Your Business Profile</h3>
+              <p style={styles.setupDesc}>
+                Please configure your store details to activate your voice assistant and business intelligence dashboard.
               </p>
             </div>
           </div>
 
-          <div style={styles.compactStepsGrid}>
-            <div style={styles.compactStepRow}>
-              <span style={styles.stepNumMini}>1</span>
-              <div>
-                <h4 style={styles.stepHeadingMini}>Add Products</h4>
-                <p style={styles.stepTextMini}>Say: <span style={styles.codeTextMini}>"Add Maggi price 20 rupees"</span></p>
-              </div>
+          {setupError && <div style={styles.errorAlert}>{setupError}</div>}
+
+          <form onSubmit={handleSetupSubmit} style={styles.setupForm}>
+            <div style={styles.setupInputGroup}>
+              <label style={styles.setupLabel}>Business / Shop Name</label>
+              <input
+                type="text"
+                required
+                placeholder="e.g., Jyoti General Store"
+                style={styles.setupInput}
+                value={shopName}
+                onChange={(e) => setShopName(e.target.value)}
+              />
             </div>
-            <div style={styles.compactStepRow}>
-              <span style={styles.stepNumMini}>2</span>
-              <div>
-                <h4 style={styles.stepHeadingMini}>Add Customers</h4>
-                <p style={styles.stepTextMini}>Say: <span style={styles.codeTextMini}>"Create Ramesh customer"</span></p>
-              </div>
+
+            <div style={styles.setupInputGroup}>
+              <label style={styles.setupLabel}>Owner Name</label>
+              <input
+                type="text"
+                required
+                placeholder="e.g., Ramesh Kumar"
+                style={styles.setupInput}
+                value={ownerName}
+                onChange={(e) => setOwnerName(e.target.value)}
+              />
             </div>
-            <div style={styles.compactStepRow}>
-              <span style={styles.stepNumMini}>3</span>
-              <div>
-                <h4 style={styles.stepHeadingMini}>Log Credit/Sales</h4>
-                <p style={styles.stepTextMini}>Say: <span style={styles.codeTextMini}>"Ramesh ko 500 udhaar diye"</span></p>
+
+            <button type="submit" disabled={setupLoading} style={styles.setupSubmitBtn}>
+              {setupLoading ? "Saving Profile..." : "Complete Setup & Launch 🚀"}
+            </button>
+          </form>
+        </div>
+      ) : (
+        <>
+          {/* Conditional Onboarding Component (Compact Getting Started Guide) */}
+          {isEmptyBusiness && (
+            <div className="glass-panel" style={styles.compactOnboardingCard}>
+              <div style={styles.compactOnboardingHeader}>
+                <span style={styles.compactOnboardingIcon}>🚀</span>
+                <div>
+                  <h3 style={styles.compactOnboardingTitle}>Getting Started Guide</h3>
+                  <p style={styles.compactOnboardingDesc}>
+                    BoloBiz is a voice-first assistant. You can manage your ledger simply by speaking or typing naturally in Hindi, Hinglish, or English to record sales, credit, and products.
+                  </p>
+                </div>
               </div>
-            </div>
-          </div>
 
-          <div style={styles.compactOnboardingActions}>
-            <Link href="/dashboard/assistant" style={styles.actionBtnPrimaryMini}>🎙️ Open AI Assistant</Link>
-            <Link href="/dashboard/inventory" style={styles.actionBtnSecondaryMini}>📦 Add Products</Link>
-            <Link href="/dashboard/customers" style={styles.actionBtnSecondaryMini}>👥 Add Customers</Link>
-          </div>
-        </div>
-      )}
-
-      {/* Metrics Grid */}
-      <div style={styles.grid}>
-        {/* Today's Sales */}
-        <div className="glass-panel glass-panel-hover" style={styles.card}>
-          <div style={styles.cardHeader}>
-            <span style={styles.cardLabel}>Today's Sales</span>
-            <span style={styles.cardIcon}>💰</span>
-          </div>
-          <div style={styles.cardValue}>{formatCurrency(stats.salesToday)}</div>
-          <div style={styles.cardFooter}>
-            {stats.salesChangePercent > 0 ? (
-              <span style={styles.trendUp}>↑ {stats.salesChangePercent}% vs yesterday</span>
-            ) : stats.salesChangePercent < 0 ? (
-              <span style={styles.trendDown}>↓ {Math.abs(stats.salesChangePercent)}% vs yesterday</span>
-            ) : (
-              <span style={styles.trendFlat}>Same as yesterday</span>
-            )}
-            <div style={styles.subLabel}>Count: {stats.salesTodayCount} transactions</div>
-          </div>
-        </div>
-
-        {/* Today's Expenses */}
-        <div className="glass-panel glass-panel-hover" style={styles.card}>
-          <div style={styles.cardHeader}>
-            <span style={styles.cardLabel}>Today's Expenses</span>
-            <span style={styles.cardIcon}>💸</span>
-          </div>
-          <div style={styles.cardValue}>{formatCurrency(stats.expensesToday)}</div>
-          <div style={styles.cardFooter}>
-            <span style={styles.trendFlat}>Weekly: {formatCurrency(stats.expensesThisWeek)}</span>
-            <div style={styles.subLabel}>Monthly: {formatCurrency(stats.expensesThisMonth)}</div>
-          </div>
-        </div>
-
-        {/* Sales after Expenses */}
-        <div className="glass-panel glass-panel-hover" style={styles.card}>
-          <div style={styles.cardHeader}>
-            <span style={styles.cardLabel}>Sales after Expenses</span>
-            <span style={styles.cardIcon}>📊</span>
-          </div>
-          <div style={{ ...styles.cardValue, color: stats.salesAfterExpensesToday >= 0 ? "var(--status-success)" : "var(--status-danger)" }}>
-            {formatCurrency(stats.salesAfterExpensesToday)}
-          </div>
-          <div style={styles.cardFooter}>
-            <span style={styles.trendFlat}>Today's net cash flow balance</span>
-            <div style={styles.subLabel}>Calculated deterministically</div>
-          </div>
-        </div>
-
-        {/* Total Udhaar / Credit */}
-        <div className="glass-panel glass-panel-hover" style={{ ...styles.card, borderLeft: "4px solid var(--accent-purple)" }}>
-          <div style={styles.cardHeader}>
-            <span style={styles.cardLabel}>Total Udhaar (Credit)</span>
-            <span style={styles.cardIcon}>👥</span>
-          </div>
-          <div style={styles.cardValue}>{formatCurrency(stats.totalOutstandingCredit)}</div>
-          <div style={styles.cardFooter}>
-            <span style={styles.trendFlat}>Lent to {stats.debtorsCount} customer(s)</span>
-            {stats.highestOutstandingCustomer && (
-              <div style={styles.subLabel}>Top: {stats.highestOutstandingCustomer.name} ({formatCurrency(stats.highestOutstandingCustomer.balance)})</div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Main content grid layout */}
-      <div style={styles.mainGrid}>
-        
-        {/* Left column: Insights and Charts */}
-        <div style={styles.leftColumn}>
-          
-          {/* Insights Panel */}
-          <div className="glass-panel" style={styles.panel}>
-            <div style={styles.panelHeader}>
-              <h3 style={styles.panelTitle}>💡 Proactive Insights Feed</h3>
-              <span style={styles.badgeCount}>{stats.insights.length} alerts</span>
-            </div>
-            
-            {stats.insights.length === 0 ? (
-              <div style={styles.emptyInsights}>
-                <span>✨</span> No urgent business alerts detected today. All operations are running smoothly!
-              </div>
-            ) : (
-              <div style={styles.insightsList}>
-                {visibleInsights.map((insight, idx) => (
-                  <div 
-                    key={idx} 
-                    style={{ 
-                      ...styles.insightCard, 
-                      borderColor: insight.priority === 1 ? "var(--status-danger)" : insight.priority === 2 ? "var(--status-warning)" : "var(--glass-border)"
-                    }}
-                  >
-                    <div style={styles.insightHeader}>
-                      <span style={{ 
-                        ...styles.insightType, 
-                        color: insight.priority === 1 ? "var(--status-danger)" : insight.priority === 2 ? "var(--status-warning)" : "var(--accent-purple)"
-                      }}>
-                        {insight.title}
-                      </span>
-                      <span style={styles.priorityBadge}>
-                        {insight.priority === 1 ? "Critical" : insight.priority === 2 ? "Important" : "Info"}
-                      </span>
-                    </div>
-                    <p style={styles.insightFact}><strong>Fact:</strong> {insight.fact}</p>
-                    <p style={styles.insightSuggestion}><strong>Suggestion:</strong> {insight.suggestion}</p>
+              <div style={styles.compactStepsGrid}>
+                <div style={styles.compactStepRow}>
+                  <span style={styles.stepNumMini}>1</span>
+                  <div>
+                    <h4 style={styles.stepHeadingMini}>Add Products</h4>
+                    <p style={styles.stepTextMini}>Say: <span style={styles.codeTextMini}>"Add Maggi price 20 rupees"</span></p>
                   </div>
-                ))}
+                </div>
+                <div style={styles.compactStepRow}>
+                  <span style={styles.stepNumMini}>2</span>
+                  <div>
+                    <h4 style={styles.stepHeadingMini}>Add Customers</h4>
+                    <p style={styles.stepTextMini}>Say: <span style={styles.codeTextMini}>"Create Ramesh customer"</span></p>
+                  </div>
+                </div>
+                <div style={styles.compactStepRow}>
+                  <span style={styles.stepNumMini}>3</span>
+                  <div>
+                    <h4 style={styles.stepHeadingMini}>Log Credit/Sales</h4>
+                    <p style={styles.stepTextMini}>Say: <span style={styles.codeTextMini}>"Ramesh ko 500 udhaar diye"</span></p>
+                  </div>
+                </div>
+              </div>
 
-                {stats.insights.length > 3 && (
-                  <button 
-                    onClick={() => setShowAllInsights(!showAllInsights)} 
-                    style={styles.toggleInsightsBtn}
-                  >
-                    {showAllInsights ? "Show Less Insights" : `View All Insights (${stats.insights.length})`}
-                  </button>
+              <div style={styles.compactOnboardingActions}>
+                <Link href="/dashboard/assistant" style={styles.actionBtnPrimaryMini}>🎙️ Open AI Assistant</Link>
+                <Link href="/dashboard/inventory" style={styles.actionBtnSecondaryMini}>📦 Add Products</Link>
+                <Link href="/dashboard/customers" style={styles.actionBtnSecondaryMini}>👥 Add Customers</Link>
+              </div>
+            </div>
+          )}
+
+          {/* Metrics Grid */}
+          <div style={styles.grid}>
+            {/* Today's Sales */}
+            <div className="glass-panel" style={styles.metricCard}>
+              <div style={styles.metricHeader}>
+                <span style={styles.metricIcon}>💰</span>
+                <span style={{
+                  ...styles.trendIndicator,
+                  color: stats.salesChangePercent >= 0 ? "var(--status-success)" : "var(--status-danger)"
+                }}>
+                  {stats.salesChangePercent >= 0 ? `+${stats.salesChangePercent}%` : `${stats.salesChangePercent}%`}
+                </span>
+              </div>
+              <div style={styles.metricLabel}>Today's Sales</div>
+              <div style={styles.metricValue}>{formatCurrency(stats.salesToday)}</div>
+              <div style={styles.metricSub}>{stats.salesTodayCount} transaction(s) logged</div>
+            </div>
+
+            {/* Expenses */}
+            <div className="glass-panel" style={styles.metricCard}>
+              <div style={styles.metricHeader}>
+                <span style={styles.metricIcon}>💸</span>
+              </div>
+              <div style={styles.metricLabel}>Today's Expenses</div>
+              <div style={styles.metricValue}>{formatCurrency(stats.expensesToday)}</div>
+              <div style={styles.metricSub}>Weekly: {formatCurrency(stats.expensesThisWeek)}</div>
+            </div>
+
+            {/* Sales After Expenses */}
+            <div className="glass-panel" style={styles.metricCard}>
+              <div style={styles.metricHeader}>
+                <span style={styles.metricIcon}>📈</span>
+              </div>
+              <div style={styles.metricLabel}>Sales after Expenses</div>
+              <div style={{
+                ...styles.metricValue,
+                color: stats.salesAfterExpensesToday >= 0 ? "var(--accent-cyan)" : "var(--status-danger)"
+              }}>
+                {formatCurrency(stats.salesAfterExpensesToday)}
+              </div>
+              <div style={styles.metricSub}>Net Cash Position (Today)</div>
+            </div>
+
+            {/* Outstanding Udhaar */}
+            <div className="glass-panel" style={styles.metricCard}>
+              <div style={styles.metricHeader}>
+                <span style={styles.metricIcon}>🔴</span>
+                {stats.debtorsCount > 0 && (
+                  <span style={{ ...styles.trendIndicator, color: "var(--status-warning)" }}>
+                    {stats.debtorsCount} debtor(s)
+                  </span>
                 )}
               </div>
-            )}
-          </div>
-
-          {/* SVG Sales Trend Chart */}
-          <div className="glass-panel" style={styles.panel}>
-            <h3 style={styles.panelTitle}>📈 7-Day Sales Trend</h3>
-            <div style={styles.chartContainer}>
-              <svg viewBox="0 0 500 180" style={styles.svgChart}>
-                {/* Horizontal grid lines */}
-                <line x1="40" y1="30" x2="480" y2="30" stroke="var(--glass-border)" strokeDasharray="3" />
-                <line x1="40" y1="80" x2="480" y2="80" stroke="var(--glass-border)" strokeDasharray="3" />
-                <line x1="40" y1="130" x2="480" y2="130" stroke="var(--glass-border)" strokeDasharray="3" />
-                
-                {/* Chart bars */}
-                {stats.recentSalesTrend.map((item, idx) => {
-                  const barWidth = 32;
-                  const gap = 30;
-                  const x = 55 + idx * (barWidth + gap);
-                  const barHeight = (item.amount / maxSalesVal) * 110;
-                  const y = 140 - barHeight;
-
-                  return (
-                    <g key={idx}>
-                      {/* Bar Background for hover area */}
-                      <rect 
-                        x={x} 
-                        y={30} 
-                        width={barWidth} 
-                        height={110} 
-                        fill="transparent" 
-                      />
-                      {/* Interactive Bar */}
-                      <rect 
-                        x={x} 
-                        y={y} 
-                        width={barWidth} 
-                        height={barHeight} 
-                        rx="4"
-                        fill="url(#barGradient)" 
-                        style={{ transition: "height 0.5s ease, y 0.5s ease" }}
-                      />
-                      {/* Amount Labels */}
-                      <text 
-                        x={x + barWidth / 2} 
-                        y={y - 8} 
-                        textAnchor="middle" 
-                        fontSize="9" 
-                        fill="var(--text-secondary)"
-                        fontWeight="700"
-                      >
-                        {item.amount > 0 ? `₹${Math.round(item.amount)}` : ""}
-                      </text>
-                      {/* Day Labels */}
-                      <text 
-                        x={x + barWidth / 2} 
-                        y="158" 
-                        textAnchor="middle" 
-                        fontSize="10" 
-                        fill="var(--text-secondary)"
-                        fontWeight="600"
-                      >
-                        {item.date}
-                      </text>
-                    </g>
-                  );
-                })}
-                
-                {/* Gradients */}
-                <defs>
-                  <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--accent-purple)" />
-                    <stop offset="100%" stopColor="var(--accent-pink)" />
-                  </linearGradient>
-                </defs>
-              </svg>
+              <div style={styles.metricLabel}>Outstanding Udhaar</div>
+              <div style={{ ...styles.metricValue, color: "var(--status-warning)" }}>
+                {formatCurrency(stats.totalOutstandingCredit)}
+              </div>
+              <div style={styles.metricSub}>
+                {stats.highestOutstandingCustomer 
+                  ? `Top: ${stats.highestOutstandingCustomer.name} (${formatCurrency(stats.highestOutstandingCustomer.balance)})`
+                  : "No pending collections"
+                }
+              </div>
             </div>
           </div>
 
-        </div>
+          {/* Main Content Grid */}
+          <div style={styles.mainColumns}>
+            
+            {/* Left column: Proactive Insights & 7-Day Trend */}
+            <div style={styles.leftColumn}>
+              
+              {/* Proactive Business Insights Feed */}
+              <div className="glass-panel" style={styles.panel}>
+                <div style={styles.panelHeaderRow}>
+                  <h3 style={styles.panelTitle}>💡 BoloBiz Smart Insights</h3>
+                  {stats.insights.length > 3 && (
+                    <button 
+                      onClick={() => setShowAllInsights(!showAllInsights)}
+                      style={styles.toggleInsightsBtn}
+                    >
+                      {showAllInsights ? "Show Less" : `View All (${stats.insights.length})`}
+                    </button>
+                  )}
+                </div>
+                <div style={styles.insightsList}>
+                  {visibleInsights.length === 0 ? (
+                    <div style={styles.emptyInsightsContainer}>
+                      <span style={{ fontSize: "2rem" }}>🎯</span>
+                      <h4 style={{ color: "var(--text-primary)", margin: "0.5rem 0 0.2rem" }}>All Set for Today!</h4>
+                      <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", margin: 0 }}>
+                        Your business reports are clean. Log more daily sales to trigger intelligence rules.
+                      </p>
+                    </div>
+                  ) : (
+                    visibleInsights.map((insight, idx) => (
+                      <div key={idx} style={{
+                        ...styles.insightItem,
+                        borderLeft: insight.priority === 1 
+                          ? "4px solid var(--status-danger)" 
+                          : insight.priority === 2 
+                            ? "4px solid var(--status-warning)" 
+                            : "4px solid var(--accent-purple)",
+                        background: insight.priority === 1
+                          ? "rgba(239, 68, 68, 0.03)"
+                          : "var(--bg-secondary)"
+                      }}>
+                        <div style={styles.insightHeader}>
+                          <span style={styles.insightTitle}>{insight.title}</span>
+                          <span style={{
+                            ...styles.insightPriorityBadge,
+                            color: insight.priority === 1 
+                              ? "var(--status-danger)" 
+                              : insight.priority === 2 
+                                ? "var(--status-warning)" 
+                                : "var(--accent-purple)",
+                            borderColor: insight.priority === 1 
+                              ? "rgba(239, 68, 68, 0.2)" 
+                              : insight.priority === 2 
+                                ? "rgba(245, 158, 11, 0.2)" 
+                                : "rgba(124, 58, 237, 0.2)"
+                          }}>
+                            {insight.priority === 1 ? "Critical" : insight.priority === 2 ? "Important" : "Info"}
+                          </span>
+                        </div>
+                        <div style={styles.insightFact}>{insight.fact}</div>
+                        <div style={styles.insightSuggestion}>💡 <strong>Suggestion:</strong> {insight.suggestion}</div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
 
-        {/* Right column: Aged Credit Follow-up, Low stock list & AI banner */}
-        <div style={styles.rightColumn}>
-          
-          {/* Ask BoloBiz voice widget */}
-          <div className="glass-panel" style={styles.assistantWidget}>
-            <div style={styles.assistantIcon}>🎙️</div>
-            <h3 style={styles.assistantWidgetTitle}>Ask BoloBiz</h3>
-            <p style={styles.assistantWidgetText}>
-              Simply type or click the microphone to ask questions about your ledger:
-            </p>
-            <div style={styles.queryExamples}>
-              <div style={styles.queryChip}>"Who owes me the most money?"</div>
-              <div style={styles.queryChip}>"Maggi stock kitni bachi hai?"</div>
-              <div style={styles.queryChip}>"Kya koi product stock out hai?"</div>
+              {/* 7-day Sales Trend SVG */}
+              <div className="glass-panel" style={styles.panel}>
+                <h3 style={styles.panelTitle}>📊 7-Day Sales Trend (Weekly)</h3>
+                <div style={styles.chartContainer}>
+                  <svg viewBox="0 0 520 180" style={styles.svgChart}>
+                    {/* Y-axis helper lines */}
+                    <line x1="40" y1="30" x2="480" y2="30" stroke="var(--glass-border)" strokeDasharray="3" />
+                    <line x1="40" y1="80" x2="480" y2="80" stroke="var(--glass-border)" strokeDasharray="3" />
+                    <line x1="40" y1="130" x2="480" y2="130" stroke="var(--glass-border)" strokeDasharray="3" />
+                    
+                    {/* Chart bars */}
+                    {stats.recentSalesTrend.map((item, idx) => {
+                      const barWidth = 32;
+                      const gap = 30;
+                      const x = 55 + idx * (barWidth + gap);
+                      const barHeight = (item.amount / maxSalesVal) * 110;
+                      const y = 140 - barHeight;
+
+                      return (
+                        <g key={idx}>
+                          {/* Bar Background for hover area */}
+                          <rect 
+                            x={x} 
+                            y={30} 
+                            width={barWidth} 
+                            height={110} 
+                            fill="transparent" 
+                          />
+                          {/* Interactive Bar */}
+                          <rect 
+                            x={x} 
+                            y={y} 
+                            width={barWidth} 
+                            height={barHeight} 
+                            rx="4"
+                            fill="url(#barGradient)" 
+                            style={{ transition: "height 0.5s ease, y 0.5s ease" }}
+                          />
+                          {/* Amount Labels */}
+                          <text 
+                            x={x + barWidth / 2} 
+                            y={y - 8} 
+                            textAnchor="middle" 
+                            fontSize="9" 
+                            fill="var(--text-secondary)"
+                            fontWeight="700"
+                          >
+                            {item.amount > 0 ? `₹${Math.round(item.amount)}` : ""}
+                          </text>
+                          {/* Day Labels */}
+                          <text 
+                            x={x + barWidth / 2} 
+                            y="158" 
+                            textAnchor="middle" 
+                            fontSize="10" 
+                            fill="var(--text-secondary)"
+                            fontWeight="600"
+                          >
+                            {item.date}
+                          </text>
+                        </g>
+                      );
+                    })}
+                    
+                    {/* Gradients */}
+                    <defs>
+                      <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="var(--accent-purple)" />
+                        <stop offset="100%" stopColor="var(--accent-pink)" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                </div>
+              </div>
+
             </div>
-            <Link href="/dashboard/assistant" style={styles.assistantWidgetLink}>
-              🎙️ Start Talking now
-            </Link>
-          </div>
 
-          {/* Aged Udhaar list */}
-          <div className="glass-panel" style={styles.panel}>
-            <h3 style={styles.panelTitle}>👥 Credit Aging (Outstanding)</h3>
-            {stats.debtorsList.length === 0 ? (
-              <p style={styles.emptyText}>No outstanding balances.</p>
-            ) : (
-              <div style={styles.miniList}>
-                {stats.debtorsList.map((debtor, idx) => (
-                  <div key={idx} style={styles.miniListItem}>
-                    <div>
-                      <div style={styles.listItemName}>{debtor.name}</div>
-                      <div style={styles.listItemSubtitle}>Pending: {debtor.oldestPendingDays} day(s)</div>
-                    </div>
-                    <div style={styles.listItemValue}>{formatCurrency(debtor.balance)}</div>
-                  </div>
-                ))}
+            {/* Right column: Aged Credit Follow-up, Low stock list & AI banner */}
+            <div style={styles.rightColumn}>
+              
+              {/* Ask BoloBiz voice widget */}
+              <div className="glass-panel" style={styles.assistantWidget}>
+                <div style={styles.assistantIcon}>🎙️</div>
+                <h3 style={styles.assistantWidgetTitle}>Ask BoloBiz</h3>
+                <p style={styles.assistantWidgetText}>
+                  Simply type or click the microphone to ask questions about your ledger:
+                </p>
+                <div style={styles.queryExamples}>
+                  <div style={styles.queryChip}>"Who owes me the most money?"</div>
+                  <div style={styles.queryChip}>"Maggi stock kitni bachi hai?"</div>
+                  <div style={styles.queryChip}>"Kya koi product stock out hai?"</div>
+                </div>
+                <Link href="/dashboard/assistant" style={styles.assistantWidgetLink}>
+                  🎙️ Start Talking now
+                </Link>
               </div>
-            )}
-          </div>
 
-          {/* Low stock list */}
-          <div className="glass-panel" style={styles.panel}>
-            <h3 style={styles.panelTitle}>📦 Low Safety Stock Items</h3>
-            {stats.lowStockList.length === 0 ? (
-              <p style={styles.emptyText}>All products are in safe quantities.</p>
-            ) : (
-              <div style={styles.miniList}>
-                {stats.lowStockList.map((product, idx) => (
-                  <div key={idx} style={styles.miniListItem}>
-                    <div>
-                      <div style={styles.listItemName}>{product.name}</div>
-                      <div style={styles.listItemSubtitle}>Safety Limit: {product.threshold} units</div>
-                    </div>
-                    <div style={{ 
-                      ...styles.listItemValue, 
-                      color: product.stock === 0 ? "var(--status-danger)" : "var(--status-warning)",
-                      fontWeight: 800
-                    }}>
-                      {product.stock === 0 ? "Out of Stock" : `${product.stock} left`}
-                    </div>
+              {/* Aged Udhaar list */}
+              <div className="glass-panel" style={styles.panel}>
+                <h3 style={styles.panelTitle}>👥 Credit Aging (Outstanding)</h3>
+                {stats.debtorsList.length === 0 ? (
+                  <p style={styles.emptyText}>No outstanding balances.</p>
+                ) : (
+                  <div style={styles.miniList}>
+                    {stats.debtorsList.map((debtor, idx) => (
+                      <div key={idx} style={styles.miniListItem}>
+                        <div>
+                          <div style={styles.listItemName}>{debtor.name}</div>
+                          <div style={styles.listItemSubtitle}>Pending: {debtor.oldestPendingDays} day(s)</div>
+                        </div>
+                        <div style={styles.listItemValue}>{formatCurrency(debtor.balance)}</div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
-            )}
+
+              {/* Low stock list */}
+              <div className="glass-panel" style={styles.panel}>
+                <h3 style={styles.panelTitle}>📦 Low Safety Stock Items</h3>
+                {stats.lowStockList.length === 0 ? (
+                  <p style={styles.emptyText}>All products are in safe quantities.</p>
+                ) : (
+                  <div style={styles.miniList}>
+                    {stats.lowStockList.map((product, idx) => (
+                      <div key={idx} style={styles.miniListItem}>
+                        <div>
+                          <div style={styles.listItemName}>{product.name}</div>
+                          <div style={styles.listItemSubtitle}>Safety Limit: {product.threshold} units</div>
+                        </div>
+                        <div style={{ 
+                          ...styles.listItemValue, 
+                          color: product.stock === 0 ? "var(--status-danger)" : "var(--status-warning)",
+                          fontWeight: 800
+                        }}>
+                          {product.stock === 0 ? "Out of Stock" : `${product.stock} left`}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+            </div>
+
           </div>
-
-        </div>
-
-      </div>
+        </>
+      )}
     </div>
   );
 }
@@ -510,62 +620,51 @@ const styles = {
     gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
     gap: "1.25rem",
   },
-  card: {
+  metricCard: {
     padding: "1.5rem",
     borderRadius: "16px",
+    background: "rgba(255, 255, 255, 0.02)",
+    border: "1px solid var(--glass-border)",
     display: "flex",
     flexDirection: "column" as const,
-    textAlign: "left" as const,
-    borderLeft: "4px solid var(--accent-purple)",
+    gap: "0.5rem",
+    boxShadow: "0 8px 32px var(--glass-shadow)",
   },
-  cardHeader: {
+  metricHeader: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: "0.75rem",
   },
-  cardLabel: {
-    fontSize: "0.75rem",
-    fontWeight: 700,
-    color: "var(--text-muted)",
+  metricIcon: {
+    fontSize: "1.5rem",
+  },
+  metricLabel: {
+    fontSize: "0.85rem",
+    color: "var(--text-secondary)",
+    fontWeight: 600,
     textTransform: "uppercase" as const,
     letterSpacing: "0.5px",
   },
-  cardIcon: {
-    fontSize: "1.1rem",
-  },
-  cardValue: {
+  metricValue: {
     fontSize: "1.85rem",
-    fontWeight: 850,
+    fontWeight: 800,
     color: "var(--text-primary)",
-    marginBottom: "0.5rem",
+    lineHeight: 1.2,
   },
-  cardFooter: {
-    marginTop: "auto",
-    display: "flex",
-    flexDirection: "column" as const,
-    gap: "0.15rem",
-  },
-  trendUp: {
-    fontSize: "0.8rem",
-    color: "var(--status-success)",
-    fontWeight: 700,
-  },
-  trendDown: {
-    fontSize: "0.8rem",
-    color: "var(--status-danger)",
-    fontWeight: 700,
-  },
-  trendFlat: {
-    fontSize: "0.8rem",
-    color: "var(--text-secondary)",
-    fontWeight: 600,
-  },
-  subLabel: {
+  metricSub: {
     fontSize: "0.75rem",
     color: "var(--text-muted)",
+    marginTop: "0.25rem",
   },
-  mainGrid: {
+  trendIndicator: {
+    fontSize: "0.8rem",
+    fontWeight: 700,
+    padding: "0.2rem 0.5rem",
+    background: "rgba(255, 255, 255, 0.03)",
+    borderRadius: "12px",
+    border: "1px solid var(--glass-border)",
+  },
+  mainColumns: {
     display: "grid",
     gridTemplateColumns: "1.6fr 1fr",
     gap: "1.5rem",
@@ -591,87 +690,71 @@ const styles = {
     flexDirection: "column" as const,
     textAlign: "left" as const,
   },
-  panelHeader: {
+  panelHeaderRow: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: "1.25rem",
   },
   panelTitle: {
-    fontSize: "1.1rem",
-    fontWeight: 750,
+    fontSize: "1.15rem",
+    fontWeight: 800,
     color: "var(--text-primary)",
-    marginBottom: "0.5rem",
   },
-  badgeCount: {
-    background: "rgba(124, 58, 237, 0.08)",
-    border: "1px solid rgba(124, 58, 237, 0.15)",
-    color: "var(--accent-purple)",
-    fontSize: "0.75rem",
+  toggleInsightsBtn: {
+    background: "transparent",
+    border: "none",
+    color: "var(--accent-cyan)",
+    fontSize: "0.8rem",
     fontWeight: 700,
-    padding: "0.2rem 0.6rem",
-    borderRadius: "10px",
-  },
-  emptyInsights: {
-    padding: "2rem",
-    color: "var(--text-secondary)",
-    fontSize: "0.95rem",
+    cursor: "pointer",
   },
   insightsList: {
     display: "flex",
     flexDirection: "column" as const,
     gap: "1rem",
   },
-  insightCard: {
+  emptyInsightsContainer: {
+    textAlign: "center" as const,
+    padding: "2rem",
+    color: "var(--text-secondary)",
+  },
+  insightItem: {
     padding: "1rem 1.25rem",
     borderRadius: "12px",
     border: "1px solid var(--glass-border)",
-    borderLeftWidth: "4px",
-    background: "var(--bg-secondary)",
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: "0.5rem",
+    transition: "transform 0.2s ease",
   },
   insightHeader: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: "0.5rem",
   },
-  insightType: {
-    fontSize: "0.85rem",
-    fontWeight: 700,
+  insightTitle: {
+    fontSize: "0.95rem",
+    fontWeight: 750,
+    color: "var(--text-primary)",
   },
-  priorityBadge: {
-    fontSize: "0.65rem",
-    background: "rgba(0,0,0,0.04)",
-    color: "var(--text-muted)",
-    padding: "0.15rem 0.4rem",
-    borderRadius: "4px",
+  insightPriorityBadge: {
+    fontSize: "0.7rem",
     fontWeight: 700,
+    padding: "0.2rem 0.5rem",
+    borderRadius: "12px",
+    border: "1px solid",
     textTransform: "uppercase" as const,
   },
   insightFact: {
     fontSize: "0.85rem",
-    color: "var(--text-primary)",
-    lineHeight: 1.4,
-    marginBottom: "0.25rem",
-  },
-  insightSuggestion: {
-    fontSize: "0.85rem",
     color: "var(--text-secondary)",
     lineHeight: 1.4,
   },
-  toggleInsightsBtn: {
-    background: "transparent",
-    border: "1px solid var(--glass-border)",
-    color: "var(--accent-purple)",
-    padding: "0.5rem",
-    borderRadius: "8px",
-    cursor: "pointer",
+  insightSuggestion: {
     fontSize: "0.85rem",
-    fontWeight: 600,
-    transition: "background 0.2s ease",
-    ":hover": {
-      background: "rgba(124, 58, 237, 0.05)",
-    },
+    color: "var(--text-primary)",
+    lineHeight: 1.4,
   },
   chartContainer: {
     width: "100%",
@@ -885,5 +968,85 @@ const styles = {
     borderRadius: "15px",
     fontSize: "0.8rem",
     fontWeight: 600,
+  },
+  setupCard: {
+    padding: "2.5rem",
+    borderRadius: "20px",
+    background: "linear-gradient(135deg, rgba(6, 182, 212, 0.04) 0%, rgba(99, 102, 241, 0.04) 100%)",
+    border: "1px solid rgba(6, 182, 212, 0.15)",
+    boxShadow: "0 10px 45px var(--glass-shadow)",
+    maxWidth: "550px",
+    margin: "2rem auto",
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: "1.5rem",
+  },
+  setupHeader: {
+    display: "flex",
+    gap: "1.25rem",
+    alignItems: "center",
+  },
+  setupIcon: {
+    fontSize: "2.5rem",
+  },
+  setupTitle: {
+    fontSize: "1.35rem",
+    fontWeight: 800,
+    color: "var(--text-primary)",
+    marginBottom: "0.25rem",
+  },
+  setupDesc: {
+    fontSize: "0.85rem",
+    color: "var(--text-secondary)",
+    lineHeight: 1.4,
+  },
+  setupForm: {
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: "1.25rem",
+    width: "100%",
+  },
+  setupInputGroup: {
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: "0.5rem",
+  },
+  setupLabel: {
+    fontSize: "0.8rem",
+    fontWeight: 700,
+    color: "var(--text-secondary)",
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.5px",
+  },
+  setupInput: {
+    background: "rgba(255,255,255,0.03)",
+    border: "1px solid var(--glass-border)",
+    padding: "0.75rem 1rem",
+    borderRadius: "8px",
+    color: "#fff",
+    fontSize: "0.95rem",
+    outline: "none",
+    transition: "all 0.2s ease",
+  },
+  setupSubmitBtn: {
+    background: "linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-indigo) 100%)",
+    color: "#fff",
+    fontWeight: 700,
+    padding: "0.85rem",
+    borderRadius: "8px",
+    cursor: "pointer",
+    transition: "all 0.2s ease",
+    border: "none",
+    marginTop: "0.5rem",
+    boxShadow: "0 4px 12px rgba(6, 182, 212, 0.15)",
+  },
+  errorAlert: {
+    background: "rgba(239, 68, 68, 0.15)",
+    border: "1px solid var(--status-danger)",
+    color: "#fca5a5",
+    padding: "0.75rem 1rem",
+    borderRadius: "8px",
+    fontSize: "0.85rem",
+    marginBottom: "1.25rem",
   },
 };

@@ -25,8 +25,6 @@ export default function SignupPage() {
           <Link href="/" style={styles.logo}>
             🎙️ BoloBiz
           </Link>
-          <h2 style={styles.title}>Create Your Account</h2>
-          <p style={styles.subtitle}>Register your business to get started</p>
         </div>
 
         <div style={styles.clerkWrapper}>
