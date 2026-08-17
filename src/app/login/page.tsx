@@ -25,8 +25,6 @@ export default function LoginPage() {
           <Link href="/" style={styles.logo}>
             🎙️ BoloBiz
           </Link>
-          <h2 style={styles.title}>Welcome Back</h2>
-          <p style={styles.subtitle}>Sign in to your merchant dashboard</p>
         </div>
 
         <div style={styles.clerkWrapper}>
