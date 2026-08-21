@@ -11,7 +11,18 @@ export function useVoiceRecognition({ onResult, onError }: UseVoiceRecognitionPr
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [recognitionError, setRecognitionError] = useState<string | null>(null);
+  
   const recognitionRef = useRef<any>(null);
+  const latestTranscriptRef = useRef<string>("");
+  const isCancelledRef = useRef<boolean>(false);
+  const onResultRef = useRef(onResult);
+  const onErrorRef = useRef(onError);
+
+  // Always keep callback refs current
+  useEffect(() => {
+    onResultRef.current = onResult;
+    onErrorRef.current = onError;
+  }, [onResult, onError]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -27,18 +38,40 @@ export function useVoiceRecognition({ onResult, onError }: UseVoiceRecognitionPr
           setIsListening(true);
           setRecognitionError(null);
           setTranscript("");
+          latestTranscriptRef.current = "";
+          isCancelledRef.current = false;
         };
 
         recognition.onresult = (event: any) => {
-          let currentTranscript = "";
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            currentTranscript += event.results[i][0].transcript;
+          let interimTranscript = "";
+          let finalTranscript = "";
+
+          for (let i = 0; i < event.results.length; i++) {
+            const res = event.results[i];
+            if (res.isFinal) {
+              finalTranscript += res[0].transcript;
+            } else {
+              interimTranscript += res[0].transcript;
+            }
           }
-          setTranscript(currentTranscript);
+
+          const currentTranscript = (finalTranscript || interimTranscript || "").trim();
+          if (currentTranscript) {
+            latestTranscriptRef.current = currentTranscript;
+            setTranscript(currentTranscript);
+          }
         };
 
         recognition.onend = () => {
           setIsListening(false);
+          const capturedText = latestTranscriptRef.current.trim();
+          
+          // Auto-send captured transcript once speech ends, unless explicitly cancelled
+          if (!isCancelledRef.current && capturedText) {
+            onResultRef.current(capturedText);
+            latestTranscriptRef.current = "";
+            setTranscript("");
+          }
         };
 
         recognition.onerror = (event: any) => {
@@ -52,22 +85,29 @@ export function useVoiceRecognition({ onResult, onError }: UseVoiceRecognitionPr
           }
 
           setRecognitionError(userFriendlyError);
-          onError(userFriendlyError);
+          onErrorRef.current(userFriendlyError);
           setIsListening(false);
+          latestTranscriptRef.current = "";
+          setTranscript("");
         };
 
         recognitionRef.current = recognition;
       }
     }
-  }, [onError]);
+  }, []);
 
   const startListening = (langMode: "hi-IN" | "en-IN" | "auto") => {
     if (!recognitionRef.current) {
       const error = "Speech recognition is not supported in this browser. Please use Google Chrome, Microsoft Edge, or Safari.";
       setRecognitionError(error);
-      onError(error);
+      onErrorRef.current(error);
       return;
     }
+
+    // Reset cancellation flag and transcript ref before starting
+    isCancelledRef.current = false;
+    latestTranscriptRef.current = "";
+    setTranscript("");
 
     // Resolve Auto-detection language safely
     let targetLang = "hi-IN"; // Default to hi-IN which handles Hinglish/Hindi
@@ -90,21 +130,22 @@ export function useVoiceRecognition({ onResult, onError }: UseVoiceRecognitionPr
 
   const stopListening = () => {
     if (recognitionRef.current && isListening) {
+      // Calling stop() on recognition will gracefully end recording and trigger recognition.onend
       recognitionRef.current.stop();
-      // Execute the result callback immediately with the final transcribed string
-      setTimeout(() => {
-        if (transcript.trim()) {
-          onResult(transcript);
-        }
-      }, 400);
     }
   };
 
   const cancelListening = () => {
+    isCancelledRef.current = true;
+    latestTranscriptRef.current = "";
+    setTranscript("");
     if (recognitionRef.current && isListening) {
-      recognitionRef.current.abort();
+      try {
+        recognitionRef.current.abort();
+      } catch (err) {
+        console.error("Error aborting recognition:", err);
+      }
       setIsListening(false);
-      setTranscript("");
     }
   };
 
