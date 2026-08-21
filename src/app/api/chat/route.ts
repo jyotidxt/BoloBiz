@@ -6,6 +6,80 @@ import * as businessService from "@/lib/services/business";
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 
+// GET: Load persistent chat history (30-50 messages) scoped strictly to authenticated business
+export async function GET(request: Request) {
+  try {
+    const session = await getAuthSession();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { businessId } = session;
+    const { searchParams } = new URL(request.url);
+    const requestedSessionId = searchParams.get("sessionId");
+
+    let chatSession;
+
+    if (requestedSessionId) {
+      chatSession = await prisma.conversationSession.findFirst({
+        where: { id: requestedSessionId, businessId },
+        include: {
+          messages: {
+            take: 50,
+            orderBy: { createdAt: "asc" },
+          },
+        },
+      });
+    } else {
+      // Retrieve the most recently active conversation session for this tenant
+      chatSession = await prisma.conversationSession.findFirst({
+        where: { businessId },
+        orderBy: { updatedAt: "desc" },
+        include: {
+          messages: {
+            take: 50,
+            orderBy: { createdAt: "asc" },
+          },
+        },
+      });
+    }
+
+    if (!chatSession) {
+      return NextResponse.json({ sessionId: null, messages: [] });
+    }
+
+    const formattedMessages = chatSession.messages.map((msg) => {
+      let parsedTool = null;
+      if (msg.toolCallDetails) {
+        try {
+          parsedTool = JSON.parse(msg.toolCallDetails);
+        } catch {
+          parsedTool = null;
+        }
+      }
+      return {
+        id: msg.id,
+        role: msg.role,
+        content: msg.content,
+        toolCallDetails: parsedTool,
+        createdAt: msg.createdAt,
+      };
+    });
+
+    return NextResponse.json({
+      sessionId: chatSession.id,
+      messages: formattedMessages,
+    });
+  } catch (error: any) {
+    console.error("GET /api/chat error:", error);
+    return NextResponse.json(
+      { error: "Failed to retrieve conversation history" },
+      { status: 500 }
+    );
+  }
+}
+
+// POST: Process message and persist conversation to database
 export async function POST(request: Request) {
   try {
     // 1. Authenticate user session
@@ -66,6 +140,12 @@ export async function POST(request: Request) {
       },
     });
 
+    // Update conversation session timestamp
+    await prisma.conversationSession.update({
+      where: { id: sessionId },
+      data: { updatedAt: new Date() },
+    });
+
     return NextResponse.json({
       sessionId,
       content: mockReply.content,
@@ -75,6 +155,40 @@ export async function POST(request: Request) {
     console.error("Chat route handler error:", error);
     return NextResponse.json(
       { error: "Something went wrong. Please try again." },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE: Clear conversation history strictly scoped to authenticated business
+export async function DELETE(request: Request) {
+  try {
+    const session = await getAuthSession();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { businessId } = session;
+    const { searchParams } = new URL(request.url);
+    const targetSessionId = searchParams.get("sessionId");
+
+    if (targetSessionId) {
+      // Delete specific session (scoped by businessId)
+      await prisma.conversationSession.deleteMany({
+        where: { id: targetSessionId, businessId },
+      });
+    } else {
+      // Clear all sessions belonging to this business
+      await prisma.conversationSession.deleteMany({
+        where: { businessId },
+      });
+    }
+
+    return NextResponse.json({ success: true, message: "Chat history cleared successfully" });
+  } catch (error: any) {
+    console.error("DELETE /api/chat error:", error);
+    return NextResponse.json(
+      { error: "Failed to clear chat history" },
       { status: 500 }
     );
   }

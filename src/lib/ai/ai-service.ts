@@ -334,6 +334,12 @@ ${productsContext || "(None yet)"}
       },
     });
 
+    // Update conversation session timestamp
+    await prisma.conversationSession.update({
+      where: { id: finalSessionId },
+      data: { updatedAt: new Date() },
+    });
+
     return {
       sessionId: finalSessionId,
       content: finalResponseText,

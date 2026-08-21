@@ -29,6 +29,7 @@ export default function AssistantPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState("");
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [loadingHistory, setLoadingHistory] = useState(true);
   
   // Voice State Machine: IDLE | LISTENING | PROCESSING | THINKING | SPEAKING | ERROR
   const [voiceState, setVoiceState] = useState<"IDLE" | "LISTENING" | "PROCESSING" | "THINKING" | "SPEAKING" | "ERROR">("IDLE");
@@ -65,11 +66,43 @@ export default function AssistantPage() {
     startListening,
     stopListening,
     cancelListening,
-    isSupported: isSttSupported,
   } = useVoiceRecognition({
     onResult: handleVoiceRecognitionResult,
     onError: handleVoiceRecognitionError,
   });
+
+  // 1. Load persistent chat history (30-50 messages) on mount
+  useEffect(() => {
+    async function loadChatHistory() {
+      try {
+        setLoadingHistory(true);
+        const res = await fetch("/api/chat");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.sessionId) {
+            setSessionId(data.sessionId);
+          }
+          if (data.messages && Array.isArray(data.messages)) {
+            setMessages(
+              data.messages.map((m: any) => ({
+                id: m.id,
+                role: m.role,
+                content: m.content,
+                toolCallDetails: m.toolCallDetails,
+                createdAt: new Date(m.createdAt),
+              }))
+            );
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load chat history:", err);
+      } finally {
+        setLoadingHistory(false);
+      }
+    }
+
+    loadChatHistory();
+  }, []);
 
   // Track recording duration
   useEffect(() => {
@@ -111,7 +144,7 @@ export default function AssistantPage() {
     } else if (voiceState === "LISTENING" && !isListening) {
       setVoiceState("IDLE");
     }
-  }, [isListening]);
+  }, [isListening, voiceState]);
 
   // Auto-scroll chat
   const scrollToBottom = () => {
@@ -119,8 +152,10 @@ export default function AssistantPage() {
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, voiceState]);
+    if (!loadingHistory) {
+      scrollToBottom();
+    }
+  }, [messages, voiceState, loadingHistory]);
 
   // Settings modification
   const handleTtsToggle = (enabled: boolean) => {
@@ -150,12 +185,34 @@ export default function AssistantPage() {
     setVoiceState("IDLE");
   };
 
-  const handleClearChat = () => {
+  // Start fresh conversation (keeps previous chats in database)
+  const handleNewChat = () => {
     setMessages([]);
     setSessionId(null);
     setPendingAction(null);
     stopSynthesis();
     setVoiceState("IDLE");
+  };
+
+  // Clear chat history with confirmation
+  const handleClearHistory = async () => {
+    const confirmPrompt = language === "hi"
+      ? "क्या आप वाकई अपना सारा चैट इतिहास हटाना चाहते हैं? यह वापस नहीं लाया जा सकेगा।"
+      : "Are you sure you want to clear your chat history? This action cannot be undone.";
+
+    if (!window.confirm(confirmPrompt)) return;
+
+    try {
+      setMessages([]);
+      setSessionId(null);
+      setPendingAction(null);
+      stopSynthesis();
+      setVoiceState("IDLE");
+
+      await fetch("/api/chat", { method: "DELETE" });
+    } catch (err) {
+      console.error("Failed to clear chat history:", err);
+    }
   };
 
   // Process sending message
@@ -196,7 +253,7 @@ export default function AssistantPage() {
 
       setSessionId(data.sessionId);
 
-      // 1. Detect if the tool output requires mutation confirmation from the user
+      // Detect if the tool output requires mutation confirmation from the user
       if (
         data.toolExecuted &&
         data.toolExecuted.result &&
@@ -220,7 +277,7 @@ export default function AssistantPage() {
       setMessages((prev) => [...prev, assistantMsg]);
       setVoiceState("IDLE");
 
-      // Speak response back
+      // Speak response back if vocal responses enabled
       speak(data.content, ttsEnabled);
     } catch (err: any) {
       console.error(err);
@@ -263,10 +320,21 @@ export default function AssistantPage() {
     return `${m}:${s}`;
   };
 
+  // Helper format message timestamp
+  const formatMessageTime = (dateInput: Date | string) => {
+    try {
+      const d = new Date(dateInput);
+      return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    } catch {
+      return "";
+    }
+  };
+
   // Localized texts
   const title = language === "hi" ? "BoloBiz वॉइस-फर्स्ट AI असिस्टेंट" : "BoloBiz Voice-First AI Assistant";
   const subtitle = language === "hi" ? "अपना बिज़नेस चलाएं — बस बोलकर" : "Run your business simply by speaking";
-  const clearBtn = language === "hi" ? "चैट साफ़ करें 🗑️" : "Clear Chat 🗑️";
+  const newChatBtnText = language === "hi" ? "➕ नई चैट" : "➕ New Chat";
+  const clearBtnText = language === "hi" ? "चैट हटाएं 🗑️" : "Clear Chat 🗑️";
   const inputPlaceholder = language === "hi" ? "लिखें या बोलें... (जैसे: 'Ramesh ko 500 udhaar diye')" : "Type or click Speak to talk...";
   const sendLabel = language === "hi" ? "भेजें" : "Send";
 
@@ -293,9 +361,14 @@ export default function AssistantPage() {
         </div>
 
         <div style={styles.rightHeader}>
-          <button onClick={handleClearChat} style={styles.clearBtn}>
-            {clearBtn}
+          <button onClick={handleNewChat} style={styles.newChatBtn} title="Start a fresh conversation">
+            {newChatBtnText}
           </button>
+          {messages.length > 0 && (
+            <button onClick={handleClearHistory} style={styles.clearBtn} title="Clear conversation history">
+              {clearBtnText}
+            </button>
+          )}
         </div>
       </div>
 
@@ -337,7 +410,12 @@ export default function AssistantPage() {
         )}
 
         <div style={styles.chatArea}>
-          {messages.length === 0 ? (
+          {loadingHistory ? (
+            <div style={styles.historyLoadingState}>
+              <div style={styles.miniSpinner}></div>
+              <span>{language === "hi" ? "चैट लोड हो रही है..." : "Loading conversation history..."}</span>
+            </div>
+          ) : messages.length === 0 ? (
             <div style={styles.welcomePrompt}>
               <div
                 style={{
@@ -377,6 +455,13 @@ export default function AssistantPage() {
                 <div key={msg.id} style={msg.role === "USER" ? styles.userRow : styles.assistantRow}>
                   <div style={msg.role === "USER" ? styles.userBubble : styles.assistantBubble}>
                     <p style={{ whiteSpace: "pre-wrap" }}>{msg.content}</p>
+
+                    {/* Timestamp */}
+                    <div style={msg.role === "USER" ? styles.userTimeRow : styles.assistantTimeRow}>
+                      <span style={msg.role === "USER" ? styles.userTimestamp : styles.assistantTimestamp}>
+                        {formatMessageTime(msg.createdAt)}
+                      </span>
+                    </div>
                     
                     {/* Inline Speaker Playback Indicator */}
                     {msg.role === "ASSISTANT" && (
@@ -636,7 +721,7 @@ const styles = {
   rightHeader: {
     display: "flex",
     alignItems: "center",
-    gap: "1rem",
+    gap: "0.75rem",
   },
   title: {
     fontSize: "1.5rem",
@@ -646,6 +731,18 @@ const styles = {
   subtitle: {
     fontSize: "0.9rem",
     color: "var(--text-secondary)",
+  },
+  newChatBtn: {
+    background: "linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-pink) 100%)",
+    border: "none",
+    padding: "0.5rem 1rem",
+    borderRadius: "15px",
+    fontSize: "0.85rem",
+    fontWeight: 700,
+    color: "#ffffff",
+    cursor: "pointer",
+    boxShadow: "0 2px 8px rgba(124, 58, 237, 0.2)",
+    transition: "all 0.2s ease",
   },
   clearBtn: {
     background: "#ffffff",
@@ -699,54 +796,52 @@ const styles = {
     border: "none",
   },
   toggleOff: {
-    background: "#f3f4f6",
+    background: "rgba(0,0,0,0.05)",
     color: "var(--text-secondary)",
-    fontWeight: 600,
+    fontWeight: 700,
     fontSize: "0.75rem",
     padding: "0.35rem 0.85rem",
     borderRadius: "10px",
     cursor: "pointer",
-    border: "1px solid rgba(0,0,0,0.06)",
+    border: "1px solid rgba(0,0,0,0.05)",
   },
   chatCard: {
     flex: 1,
     display: "flex",
     flexDirection: "column" as const,
-    padding: "1.5rem",
-    overflow: "hidden",
-    background: "#ffffff",
-    border: "1px solid rgba(0, 0, 0, 0.05)",
-    boxShadow: "0 10px 40px rgba(0, 0, 0, 0.03)",
     borderRadius: "20px",
+    padding: "1.5rem",
+    minHeight: "400px",
+    overflow: "hidden",
+    position: "relative" as const,
+    background: "#ffffff",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.03)",
   },
   chatArea: {
     flex: 1,
     overflowY: "auto" as const,
-    marginBottom: "1rem",
     paddingRight: "0.5rem",
-  },
-  welcomePrompt: {
+    marginBottom: "1rem",
     display: "flex",
     flexDirection: "column" as const,
-    alignItems: "center",
-    justifyContent: "center",
-    height: "100%",
+  },
+  welcomePrompt: {
+    margin: "auto",
     textAlign: "center" as const,
-    padding: "2rem",
+    padding: "2rem 1rem",
   },
   micCircleBig: {
-    width: "80px",
-    height: "80px",
+    width: "70px",
+    height: "70px",
     borderRadius: "50%",
     background: "var(--accent-gradient)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "2.25rem",
+    fontSize: "2rem",
+    margin: "0 auto 1.5rem",
     cursor: "pointer",
-    boxShadow: "0 6px 20px rgba(219, 39, 119, 0.25)",
-    marginBottom: "1.5rem",
-    transition: "transform 0.2s ease, box-shadow 0.2s ease",
+    boxShadow: "0 10px 25px rgba(124, 58, 237, 0.25)",
     color: "#fff",
     ":hover": {
       transform: "scale(1.03)",
@@ -809,6 +904,24 @@ const styles = {
     textAlign: "left" as const,
     position: "relative" as const,
   },
+  userTimeRow: {
+    display: "flex",
+    justifyContent: "flex-end",
+    marginTop: "0.35rem",
+  },
+  assistantTimeRow: {
+    display: "flex",
+    justifyContent: "flex-start",
+    marginTop: "0.35rem",
+  },
+  userTimestamp: {
+    fontSize: "0.68rem",
+    color: "rgba(255, 255, 255, 0.75)",
+  },
+  assistantTimestamp: {
+    fontSize: "0.68rem",
+    color: "var(--text-muted)",
+  },
   speakerRow: {
     display: "flex",
     gap: "0.5rem",
@@ -848,42 +961,44 @@ const styles = {
   },
   receiptBadge: {
     background: "rgba(124, 58, 237, 0.08)",
+    border: "1px solid rgba(124, 58, 237, 0.15)",
     color: "var(--accent-purple)",
-    padding: "0.15rem 0.4rem",
-    borderRadius: "4px",
     fontSize: "0.7rem",
     fontWeight: 700,
+    padding: "0.15rem 0.5rem",
+    borderRadius: "4px",
+    textTransform: "uppercase" as const,
   },
   receiptBody: {
     fontSize: "0.85rem",
-    display: "flex",
-    flexDirection: "column" as const,
-    gap: "0.25rem",
+    lineHeight: 1.5,
   },
   confirmationPanel: {
-    display: "flex",
-    flexDirection: "column" as const,
-    gap: "0.5rem",
+    background: "rgba(245, 158, 11, 0.06)",
+    border: "1px dashed var(--status-warning)",
+    borderRadius: "8px",
+    padding: "0.75rem",
+    marginTop: "0.5rem",
   },
   confirmText: {
-    color: "var(--status-danger)",
+    color: "var(--status-warning)",
     fontSize: "0.85rem",
-    margin: 0,
+    marginBottom: "0.5rem",
   },
   confirmDetails: {
-    fontSize: "0.85rem",
-    padding: "0.5rem",
-    background: "#f9fafb",
-    borderRadius: "6px",
-    border: "1px dashed rgba(0,0,0,0.08)",
+    fontSize: "0.8rem",
+    color: "var(--text-secondary)",
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: "0.2rem",
+    marginBottom: "0.75rem",
   },
   confirmBtnRow: {
     display: "flex",
     gap: "0.75rem",
-    marginTop: "0.5rem",
   },
   confirmBtn: {
-    background: "var(--accent-purple)",
+    background: "var(--status-success)",
     color: "#fff",
     border: "none",
     padding: "0.45rem 1rem",
@@ -891,176 +1006,155 @@ const styles = {
     fontSize: "0.8rem",
     fontWeight: 700,
     cursor: "pointer",
-    boxShadow: "0 2px 6px rgba(124, 58, 237, 0.2)",
   },
   cancelBtn: {
-    background: "#ffffff",
+    background: "rgba(0,0,0,0.05)",
     border: "1px solid rgba(0,0,0,0.1)",
+    color: "var(--text-secondary)",
     padding: "0.45rem 1rem",
     borderRadius: "8px",
     fontSize: "0.8rem",
     fontWeight: 600,
-    color: "var(--text-secondary)",
     cursor: "pointer",
   },
   typingIndicator: {
     display: "flex",
-    alignItems: "center",
-    gap: "0.3rem",
-    padding: "0.25rem 0.5rem",
+    gap: "4px",
+    padding: "4px 0",
   },
   waveformContainer: {
     display: "flex",
-    justifyContent: "space-between",
     alignItems: "center",
+    justifyContent: "space-between",
     background: "rgba(124, 58, 237, 0.05)",
     border: "1px solid rgba(124, 58, 237, 0.15)",
     padding: "0.6rem 1.25rem",
-    borderRadius: "15px",
-    marginBottom: "1rem",
+    borderRadius: "12px",
+    marginBottom: "0.75rem",
   },
   waveformText: {
     fontSize: "0.85rem",
+    fontWeight: 700,
     color: "var(--accent-purple)",
-    fontWeight: 600,
   },
   waveformBars: {
     display: "flex",
+    gap: "4px",
     alignItems: "center",
-    gap: "3px",
-    height: "30px",
+    height: "20px",
   },
   waveBar: {
-    width: "3px",
-    height: "8px",
-    backgroundColor: "var(--accent-purple)",
+    width: "4px",
+    height: "100%",
+    background: "var(--accent-purple)",
     borderRadius: "2px",
-    animation: "bounceWave 1.2s infinite ease-in-out",
+    animation: "waveform-bounce 1s ease-in-out infinite alternate",
   },
   liveTranscriptCard: {
-    background: "#f9fafb",
-    border: "1px solid rgba(0,0,0,0.06)",
+    background: "rgba(255, 255, 255, 0.9)",
+    border: "1px solid var(--accent-purple)",
     padding: "0.75rem 1rem",
     borderRadius: "12px",
-    marginBottom: "1rem",
+    marginBottom: "0.75rem",
+    boxShadow: "0 4px 12px rgba(124, 58, 237, 0.08)",
   },
   liveTranscriptLabel: {
     fontSize: "0.75rem",
     fontWeight: 700,
-    color: "var(--text-muted)",
-    display: "block",
-    marginBottom: "0.25rem",
+    color: "var(--accent-purple)",
+    textTransform: "uppercase" as const,
   },
   liveTranscriptText: {
-    fontSize: "0.9rem",
-    fontStyle: "italic",
+    fontSize: "0.95rem",
     color: "var(--text-primary)",
-    margin: 0,
+    marginTop: "0.2rem",
+    fontStyle: "italic",
   },
   inputContainer: {
     display: "flex",
     gap: "0.75rem",
     alignItems: "center",
-    background: "#f9fafb",
-    border: "1px solid rgba(0, 0, 0, 0.06)",
-    padding: "0.5rem",
-    borderRadius: "30px",
+    position: "relative" as const,
   },
   micBtn: {
-    width: "48px",
-    height: "48px",
+    width: "46px",
+    height: "46px",
     borderRadius: "50%",
-    background: "#ffffff",
-    border: "1px solid rgba(0,0,0,0.05)",
+    background: "#f3f4f6",
+    border: "1px solid rgba(0,0,0,0.08)",
+    cursor: "pointer",
+    fontSize: "1.25rem",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "1.25rem",
-    cursor: "pointer",
-    boxShadow: "0 2px 6px rgba(0,0,0,0.02)",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
     transition: "all 0.2s ease",
-    ":hover": {
-      background: "#f3f4f6",
-    },
   },
   micBtnListening: {
-    width: "48px",
-    height: "48px",
+    width: "46px",
+    height: "46px",
     borderRadius: "50%",
     background: "var(--status-danger)",
     border: "none",
+    color: "#fff",
+    cursor: "pointer",
+    fontSize: "1.25rem",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "1.1rem",
-    cursor: "pointer",
-    color: "#fff",
-    boxShadow: "0 4px 12px rgba(239, 68, 68, 0.3)",
-    animation: "pulse-wave 1.5s infinite ease-in-out",
+    boxShadow: "0 0 15px rgba(239, 68, 68, 0.4)",
+    animation: "pulse-danger 1.5s infinite",
   },
   recordingStatePanel: {
     flex: 1,
+    background: "#f9fafb",
+    border: "1px solid rgba(0,0,0,0.08)",
+    borderRadius: "25px",
+    padding: "0.6rem 1.25rem",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingRight: "0.5rem",
   },
   recordingPrompt: {
     fontSize: "0.9rem",
+    color: "var(--text-primary)",
     fontStyle: "italic",
-    color: "var(--text-secondary)",
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    maxWidth: "80%",
   },
   recordingCancelBtn: {
     background: "transparent",
     border: "none",
     color: "var(--status-danger)",
-    fontWeight: 600,
-    fontSize: "0.85rem",
+    fontWeight: 700,
+    fontSize: "0.8rem",
     cursor: "pointer",
-    padding: "0.25rem 0.5rem",
-    ":hover": {
-      textDecoration: "underline",
-    },
   },
   input: {
     flex: 1,
-    padding: "0.75rem 1rem",
-    color: "var(--text-primary)",
+    background: "#f9fafb",
+    border: "1px solid rgba(0,0,0,0.08)",
+    borderRadius: "25px",
+    padding: "0.75rem 1.25rem",
     fontSize: "0.95rem",
-    background: "transparent",
-    border: "none",
+    color: "var(--text-primary)",
     outline: "none",
   },
   sendBtn: {
-    background: "var(--accent-purple)",
+    background: "var(--accent-gradient)",
     color: "#fff",
     fontWeight: 700,
-    padding: "0.65rem 1.5rem",
-    borderRadius: "20px",
-    cursor: "pointer",
-    boxShadow: "0 4px 10px rgba(124, 58, 237, 0.2)",
-    transition: "all 0.2s ease",
     border: "none",
-    ":hover": {
-      background: "#6d28d9",
-    },
-    ":disabled": {
-      background: "#e5e7eb",
-      color: "var(--text-muted)",
-      boxShadow: "none",
-      cursor: "default",
-    },
+    padding: "0.75rem 1.5rem",
+    borderRadius: "25px",
+    cursor: "pointer",
+    fontSize: "0.9rem",
+    boxShadow: "0 4px 12px rgba(219, 39, 119, 0.2)",
   },
   errorAlert: {
-    background: "rgba(239, 68, 68, 0.08)",
-    border: "1px solid rgba(239, 68, 68, 0.2)",
+    background: "rgba(239, 68, 68, 0.1)",
+    border: "1px solid var(--status-danger)",
     color: "var(--status-danger)",
-    padding: "0.75rem 1rem",
-    borderRadius: "12px",
+    padding: "0.5rem 1rem",
+    borderRadius: "10px",
     marginBottom: "1rem",
     fontSize: "0.85rem",
     display: "flex",
@@ -1072,7 +1166,23 @@ const styles = {
     border: "none",
     color: "var(--status-danger)",
     cursor: "pointer",
-    fontSize: "0.95rem",
-    fontWeight: "bold",
+    fontWeight: 700,
+  },
+  historyLoadingState: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "0.75rem",
+    padding: "3rem 1rem",
+    color: "var(--text-secondary)",
+    fontSize: "0.9rem",
+  },
+  miniSpinner: {
+    width: "18px",
+    height: "18px",
+    border: "2px solid rgba(124, 58, 237, 0.2)",
+    borderTop: "2px solid var(--accent-purple)",
+    borderRadius: "50%",
+    animation: "spin 1s linear infinite",
   },
 };
