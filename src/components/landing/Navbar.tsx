@@ -256,8 +256,8 @@ const styles = {
     display: "flex",
     alignItems: "center",
     gap: "0.4rem",
-    background: "rgba(0, 0, 0, 0.02)",
-    border: "1px solid rgba(0, 0, 0, 0.08)",
+    background: "var(--glass-bg)",
+    border: "1px solid var(--glass-border)",
     padding: "0.5rem 1rem",
     borderRadius: "20px",
     cursor: "pointer",
@@ -267,8 +267,8 @@ const styles = {
     transition: "all var(--transition-fast)",
     outline: "none",
     ":hover": {
-      background: "rgba(0, 0, 0, 0.05)",
-      borderColor: "rgba(0, 0, 0, 0.15)",
+      background: "var(--bg-tertiary)",
+      borderColor: "var(--glass-border)",
     },
     ":focus-visible": {
       border: "1px solid var(--accent-purple)",
@@ -314,7 +314,7 @@ const styles = {
     outline: "none",
     textAlign: "left" as const,
     ":hover": {
-      background: "rgba(0, 0, 0, 0.03)",
+      background: "var(--bg-tertiary)",
       color: "var(--text-primary)",
     },
     ":focus-visible": {
@@ -334,7 +334,7 @@ const styles = {
     borderRadius: "20px",
     transition: "all var(--transition-fast)",
     ":hover": {
-      background: "rgba(0, 0, 0, 0.03)",
+      background: "var(--bg-tertiary)",
       color: "var(--text-primary)",
     },
   },

@@ -288,7 +288,7 @@ const styles = {
   title: {
     fontSize: "1.5rem",
     fontWeight: 800,
-    color: "#fff",
+    color: "var(--text-primary)",
   },
   subtitle: {
     fontSize: "0.9rem",
@@ -315,7 +315,7 @@ const styles = {
   panelTitle: {
     fontSize: "1.1rem",
     fontWeight: 700,
-    color: "#fff",
+    color: "var(--text-primary)",
     marginBottom: "1rem",
   },
   form: {
@@ -339,18 +339,18 @@ const styles = {
     color: "var(--text-secondary)",
   },
   input: {
-    background: "rgba(255,255,255,0.03)",
-    border: "1px solid rgba(255,255,255,0.08)",
+    background: "var(--bg-secondary)",
+    border: "1px solid var(--glass-border)",
     padding: "0.75rem 1rem",
     borderRadius: "8px",
-    color: "#fff",
+    color: "var(--text-primary)",
   },
   select: {
-    background: "rgba(17, 24, 39, 0.7)",
-    border: "1px solid rgba(255, 255, 255, 0.08)",
+    background: "var(--bg-secondary)",
+    border: "1px solid var(--glass-border)",
     padding: "0.75rem 1rem",
     borderRadius: "8px",
-    color: "#fff",
+    color: "var(--text-primary)",
     cursor: "pointer",
   },
   submitBtn: {

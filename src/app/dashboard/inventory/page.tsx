@@ -368,7 +368,7 @@ const styles = {
   title: {
     fontSize: "1.5rem",
     fontWeight: 800,
-    color: "#fff",
+    color: "var(--text-primary)",
   },
   subtitle: {
     fontSize: "0.9rem",
@@ -395,7 +395,7 @@ const styles = {
   panelTitle: {
     fontSize: "1.1rem",
     fontWeight: 700,
-    color: "#fff",
+    color: "var(--text-primary)",
     marginBottom: "1rem",
   },
   form: {
@@ -419,11 +419,11 @@ const styles = {
     color: "var(--text-secondary)",
   },
   input: {
-    background: "rgba(255,255,255,0.03)",
-    border: "1px solid rgba(255,255,255,0.08)",
+    background: "var(--bg-secondary)",
+    border: "1px solid var(--glass-border)",
     padding: "0.75rem 1rem",
     borderRadius: "8px",
-    color: "#fff",
+    color: "var(--text-primary)",
   },
   submitBtn: {
     background: "var(--accent-teal)",
@@ -440,7 +440,7 @@ const styles = {
   searchInput: {
     width: "100%",
     padding: "0.75rem 1rem",
-    color: "#fff",
+    color: "var(--text-primary)",
   },
   tableCard: {
     padding: "1rem",
@@ -451,7 +451,7 @@ const styles = {
     borderCollapse: "collapse" as const,
   },
   tableHeaderRow: {
-    borderBottom: "1px solid rgba(255,255,255,0.06)",
+    borderBottom: "1px solid var(--glass-border)",
   },
   th: {
     textAlign: "left" as const,
@@ -462,11 +462,15 @@ const styles = {
     textTransform: "uppercase" as const,
   },
   tableRow: {
-    borderBottom: "1px solid rgba(255,255,255,0.03)",
+    borderBottom: "1px solid var(--glass-border)",
+    ":hover": {
+      background: "var(--bg-tertiary)",
+    },
   },
   td: {
     padding: "1.2rem 1rem",
     fontSize: "0.95rem",
+    color: "var(--text-primary)",
   },
   skuText: {
     fontSize: "0.75rem",
@@ -490,8 +494,9 @@ const styles = {
     fontSize: "0.85rem",
   },
   adjustBtnTrigger: {
-    background: "rgba(255, 255, 255, 0.05)",
-    border: "1px solid rgba(255, 255, 255, 0.08)",
+    background: "var(--bg-secondary)",
+    border: "1px solid var(--glass-border)",
+    color: "var(--text-primary)",
     padding: "0.35rem 0.75rem",
     borderRadius: "6px",
     cursor: "pointer",
@@ -505,10 +510,10 @@ const styles = {
   adjustInput: {
     width: "80px",
     padding: "0.35rem",
-    background: "rgba(255,255,255,0.03)",
-    border: "1px solid rgba(255,255,255,0.1)",
+    background: "var(--bg-secondary)",
+    border: "1px solid var(--glass-border)",
     borderRadius: "6px",
-    color: "#fff",
+    color: "var(--text-primary)",
     fontSize: "0.85rem",
   },
   adjustSubmitBtn: {

@@ -1019,11 +1019,11 @@ const styles = {
     letterSpacing: "0.5px",
   },
   setupInput: {
-    background: "rgba(255,255,255,0.03)",
+    background: "var(--bg-secondary)",
     border: "1px solid var(--glass-border)",
     padding: "0.75rem 1rem",
     borderRadius: "8px",
-    color: "#fff",
+    color: "var(--text-primary)",
     fontSize: "0.95rem",
     outline: "none",
     transition: "all 0.2s ease",

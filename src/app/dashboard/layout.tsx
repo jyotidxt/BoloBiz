@@ -117,8 +117,8 @@ const styles = {
     fontSize: "1.75rem",
   },
   businessBadge: {
-    background: "rgba(0, 0, 0, 0.02)",
-    border: "1px solid rgba(0, 0, 0, 0.05)",
+    background: "var(--glass-bg)",
+    border: "1px solid var(--glass-border)",
     borderRadius: "12px",
     padding: "0.75rem 1rem",
     marginBottom: "2rem",
@@ -156,7 +156,7 @@ const styles = {
     fontWeight: 500,
     transition: "all 0.2s ease",
     ":hover": {
-      background: "rgba(0, 0, 0, 0.03)",
+      background: "var(--bg-tertiary)",
       color: "var(--text-primary)",
     },
   },
@@ -177,7 +177,7 @@ const styles = {
   },
   sidebarFooter: {
     marginTop: "auto",
-    borderTop: "1px solid rgba(0, 0, 0, 0.05)",
+    borderTop: "1px solid var(--glass-border)",
     paddingTop: "1.5rem",
     display: "flex",
     flexDirection: "column" as const,

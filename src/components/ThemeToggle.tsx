@@ -55,10 +55,10 @@ const styles = {
     width: "50px",
     height: "50px",
     borderRadius: "50%",
-    background: "rgba(255, 255, 255, 0.35)",
-    border: "1px solid rgba(255, 255, 255, 0.4)",
+    background: "var(--glass-bg)",
+    border: "1px solid var(--glass-border)",
     backdropFilter: "blur(20px)",
-    boxShadow: "0 8px 32px rgba(0, 0, 0, 0.15)",
+    boxShadow: "0 8px 32px var(--glass-shadow)",
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
@@ -67,9 +67,8 @@ const styles = {
     transition: "transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.3s ease",
     ":hover": {
       transform: "scale(1.1)",
-      background: "rgba(255, 255, 255, 0.5)",
+      background: "var(--bg-tertiary)",
     },
-    // Dark mode specific overrides in JS since we control rendering inline
   },
   icon: {
     fontSize: "1.4rem",

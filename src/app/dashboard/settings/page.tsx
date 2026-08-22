@@ -169,7 +169,7 @@ const styles = {
   title: {
     fontSize: "1.5rem",
     fontWeight: 800,
-    color: "#fff",
+    color: "var(--text-primary)",
   },
   subtitle: {
     fontSize: "0.9rem",
@@ -186,20 +186,20 @@ const styles = {
   },
   settingsCard: {
     padding: "2rem",
-    background: "rgba(255, 255, 255, 0.03)",
-    border: "1px solid rgba(255, 255, 255, 0.05)",
+    background: "var(--glass-bg)",
+    border: "1px solid var(--glass-border)",
     borderRadius: "16px",
   },
   infoCard: {
     padding: "2rem",
-    background: "rgba(255, 255, 255, 0.01)",
-    border: "1px solid rgba(255, 255, 255, 0.04)",
+    background: "var(--glass-bg)",
+    border: "1px solid var(--glass-border)",
     borderRadius: "16px",
   },
   cardTitle: {
     fontSize: "1.2rem",
     fontWeight: 700,
-    color: "#fff",
+    color: "var(--text-primary)",
     marginBottom: "0.5rem",
   },
   cardSubtitle: {
@@ -257,11 +257,11 @@ const styles = {
     cursor: "pointer",
   },
   input: {
-    background: "rgba(255,255,255,0.03)",
-    border: "1px solid rgba(255,255,255,0.08)",
+    background: "var(--bg-secondary)",
+    border: "1px solid var(--glass-border)",
     padding: "0.75rem 1rem",
     borderRadius: "8px",
-    color: "#fff",
+    color: "var(--text-primary)",
     fontSize: "0.95rem",
     outline: "none",
     transition: "all 0.2s ease",
@@ -287,14 +287,14 @@ const styles = {
     display: "flex",
     justifyContent: "space-between",
     fontSize: "0.85rem",
-    borderBottom: "1px solid rgba(255,255,255,0.03)",
+    borderBottom: "1px solid var(--glass-border)",
     paddingBottom: "0.75rem",
   },
   infoKey: {
     color: "var(--text-secondary)",
   },
   infoValue: {
-    color: "#fff",
+    color: "var(--text-primary)",
     fontWeight: 600,
   },
 };
