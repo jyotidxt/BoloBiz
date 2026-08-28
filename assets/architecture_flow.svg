@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 520" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradients -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0f1d" />
+      <stop offset="100%" stop-color="#111827" />
+    </linearGradient>
+    <linearGradient id="purplePink" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7c3aed" />
+      <stop offset="100%" stop-color="#db2777" />
+    </linearGradient>
+    <linearGradient id="cyanBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06b6d4" />
+      <stop offset="100%" stop-color="#6366f1" />
+    </linearGradient>
+    <linearGradient id="emeraldTeal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+    <linearGradient id="amberOrange" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+
+    <!-- Filters -->
+    <filter id="cardGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.5" />
+    </filter>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="1000" height="520" rx="16" fill="url(#bgGrad)" stroke="#1f2937" stroke-width="2" />
+
+  <!-- Header Title -->
+  <text x="50" y="50" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="800" letter-spacing="0.5">BoloBiz Architecture &amp; Execution Pipeline</text>
+  <text x="50" y="75" fill="#9ca3af" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13">End-to-End Voice AI, Deterministic Financials &amp; Multi-Tenant Isolation</text>
+
+  <!-- COLUMN 1: Client & Voice UI -->
+  <g transform="translate(50, 105)" filter="url(#cardGlow)">
+    <rect width="260" height="370" rx="12" fill="#131b2e" stroke="rgba(124, 58, 237, 0.3)" stroke-width="1.5" />
+    <rect x="0" y="0" width="260" height="40" rx="12" fill="rgba(124, 58, 237, 0.15)" />
+    <text x="130" y="25" text-anchor="middle" fill="#c084fc" font-family="sans-serif" font-size="14" font-weight="700">🎙️ 1. Client &amp; Speech Layer</text>
+
+    <!-- Sub-cards inside col 1 -->
+    <rect x="15" y="55" width="230" height="65" rx="8" fill="#1e293b" stroke="#334155" />
+    <text x="25" y="78" fill="#ffffff" font-family="sans-serif" font-size="12" font-weight="700">Web Speech API (STT)</text>
+    <text x="25" y="98" fill="#94a3b8" font-family="sans-serif" font-size="11">Real-time Hindi &amp; Hinglish speech</text>
+
+    <rect x="15" y="130" width="230" height="65" rx="8" fill="#1e293b" stroke="#334155" />
+    <text x="25" y="153" fill="#ffffff" font-family="sans-serif" font-size="12" font-weight="700">Speech Synthesis (TTS)</text>
+    <text x="25" y="173" fill="#94a3b8" font-family="sans-serif" font-size="11">Vocal readouts of AI responses</text>
+
+    <rect x="15" y="205" width="230" height="65" rx="8" fill="#1e293b" stroke="#334155" />
+    <text x="25" y="228" fill="#ffffff" font-family="sans-serif" font-size="12" font-weight="700">Bilingual Dashboard UI</text>
+    <text x="25" y="248" fill="#94a3b8" font-family="sans-serif" font-size="11">Dark/Light Mode &amp; Hindi Toggle</text>
+
+    <rect x="15" y="280" width="230" height="70" rx="8" fill="#1e293b" stroke="#334155" />
+    <text x="25" y="303" fill="#ffffff" font-family="sans-serif" font-size="12" font-weight="700">Clerk Auth Provider</text>
+    <text x="25" y="323" fill="#94a3b8" font-family="sans-serif" font-size="11">JWT Session &amp; Protected Routes</text>
+  </g>
+
+  <!-- COLUMN 2: AI & Validation Gateway -->
+  <g transform="translate(370, 105)" filter="url(#cardGlow)">
+    <rect width="260" height="370" rx="12" fill="#131b2e" stroke="rgba(6, 182, 212, 0.3)" stroke-width="1.5" />
+    <rect x="0" y="0" width="260" height="40" rx="12" fill="rgba(6, 182, 212, 0.15)" />
+    <text x="130" y="25" text-anchor="middle" fill="#67e8f9" font-family="sans-serif" font-size="14" font-weight="700">🧠 2. AI &amp; Safety Gateway</text>
+
+    <rect x="15" y="55" width="230" height="65" rx="8" fill="#1e293b" stroke="#334155" />
+    <text x="25" y="78" fill="#ffffff" font-family="sans-serif" font-size="12" font-weight="700">Google Gemini 3.5 Flash</text>
+    <text x="25" y="98" fill="#94a3b8" font-family="sans-serif" font-size="11">NLU Intent &amp; Structured Tools</text>
+
+    <rect x="15" y="130" width="230" height="65" rx="8" fill="#1e293b" stroke="#334155" />
+    <text x="25" y="153" fill="#ffffff" font-family="sans-serif" font-size="12" font-weight="700">Customer Ambiguity Resolver</text>
+    <text x="25" y="173" fill="#94a3b8" font-family="sans-serif" font-size="11">Blocks blind execution on duplicates</text>
+
+    <rect x="15" y="205" width="230" height="65" rx="8" fill="rgba(245, 158, 11, 0.1)" stroke="rgba(245, 158, 11, 0.3)" />
+    <text x="25" y="228" fill="#fcd34d" font-family="sans-serif" font-size="12" font-weight="700">⚡ Mutation 2-Step Lock</text>
+    <text x="25" y="248" fill="#fde68a" font-family="sans-serif" font-size="11">Credit / Sales require "Confirm &amp; Run"</text>
+
+    <rect x="15" y="280" width="230" height="70" rx="8" fill="#1e293b" stroke="#334155" />
+    <text x="25" y="303" fill="#ffffff" font-family="sans-serif" font-size="12" font-weight="700">Persistent Chat History</text>
+    <text x="25" y="323" fill="#94a3b8" font-family="sans-serif" font-size="11">Scoped session &amp; timestamps</text>
+  </g>
+
+  <!-- COLUMN 3: Business Services & DB -->
+  <g transform="translate(690, 105)" filter="url(#cardGlow)">
+    <rect width="260" height="370" rx="12" fill="#131b2e" stroke="rgba(16, 185, 129, 0.3)" stroke-width="1.5" />
+    <rect x="0" y="0" width="260" height="40" rx="12" fill="rgba(16, 185, 129, 0.15)" />
+    <text x="130" y="25" text-anchor="middle" fill="#6ee7b7" font-family="sans-serif" font-size="14" font-weight="700">🔒 3. Ledger &amp; Multi-Tenant DB</text>
+
+    <rect x="15" y="55" width="230" height="65" rx="8" fill="#1e293b" stroke="#334155" />
+    <text x="25" y="78" fill="#ffffff" font-family="sans-serif" font-size="12" font-weight="700">Business Services Layer</text>
+    <text x="25" y="98" fill="#94a3b8" font-family="sans-serif" font-size="11">Atomic Prisma transactions</text>
+
+    <rect x="15" y="130" width="230" height="65" rx="8" fill="#1e293b" stroke="#334155" />
+    <text x="25" y="153" fill="#ffffff" font-family="sans-serif" font-size="12" font-weight="700">Deterministic Analytics Engine</text>
+    <text x="25" y="173" fill="#94a3b8" font-family="sans-serif" font-size="11">Sales, Expenses, Aging Udhaar</text>
+
+    <rect x="15" y="205" width="230" height="65" rx="8" fill="#1e293b" stroke="#334155" />
+    <text x="25" y="228" fill="#ffffff" font-family="sans-serif" font-size="12" font-weight="700">Proactive Insights Rules</text>
+    <text x="25" y="248" fill="#94a3b8" font-family="sans-serif" font-size="11">Zero-inventory &amp; debt warnings</text>
+
+    <rect x="15" y="280" width="230" height="70" rx="8" fill="rgba(16, 185, 129, 0.1)" stroke="rgba(16, 185, 129, 0.3)" />
+    <text x="25" y="303" fill="#a7f3d0" font-family="sans-serif" font-size="12" font-weight="700">Tenant-Isolated Database</text>
+    <text x="25" y="323" fill="#6ee7b7" font-family="sans-serif" font-size="11">businessId foreign key constraints</text>
+  </g>
+
+  <!-- Connectors / Arrows -->
+  <path d="M 310 230 L 370 230" stroke="url(#purplePink)" stroke-width="2.5" stroke-dasharray="4,4" marker-end="url(#arrow)" />
+  <polygon points="368,230 358,225 358,235" fill="#db2777" />
+
+  <path d="M 630 230 L 690 230" stroke="url(#cyanBlue)" stroke-width="2.5" stroke-dasharray="4,4" marker-end="url(#arrow)" />
+  <polygon points="688,230 678,225 678,235" fill="#6366f1" />
+</svg>
