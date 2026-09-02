@@ -1,11 +1,11 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-
-// Match all routes inside the dashboard layout
-const isProtectedRoute = createRouteMatcher(["/dashboard(.*)"]);
+import { clerkMiddleware } from "@clerk/nextjs/server";
 
 export default clerkMiddleware(async (auth, req) => {
-  if (isProtectedRoute(req)) {
-    await auth.protect();
+  const { userId, redirectToSignIn } = await auth();
+  
+  // Protect all dashboard routes
+  if (!userId && req.nextUrl.pathname.startsWith("/dashboard")) {
+    return redirectToSignIn();
   }
 });
 

@@ -52,19 +52,7 @@ export async function GET() {
       },
     });
 
-    // 3. Count products with low stock
-    const lowStockCount = await prisma.product.count({
-      where: {
-        businessId,
-        stockQuantity: {
-          lte: prisma.product.fields.lowStockThreshold, // prisma doesn't support direct self-referential conditions easily in SQLite, so let's fetch products and filter in JS or do it standard
-        },
-      },
-    });
-
-    // Let's check low stock products more reliably by fetching and filtering in code, or writing a custom where if prisma allows.
-    // SQLite can do this, but Prisma has issues with self-referential comparisons on some versions.
-    // Let's do it safely by pulling products where stock <= lowStockThreshold.
+    // 3. Count products with low stock (safely fetched and computed)
     const allProducts = await prisma.product.findMany({
       where: { businessId },
       select: { stockQuantity: true, lowStockThreshold: true },
