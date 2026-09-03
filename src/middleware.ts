@@ -1,11 +1,14 @@
 import { clerkMiddleware } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 
 export default clerkMiddleware(async (auth, req) => {
-  const { userId, redirectToSignIn } = await auth();
+  const { userId } = await auth();
   
-  // Protect all dashboard routes
-  if (!userId && req.nextUrl.pathname.startsWith("/dashboard")) {
-    return redirectToSignIn();
+  // Protect all dashboard & onboarding routes
+  if (!userId && (req.nextUrl.pathname.startsWith("/dashboard") || req.nextUrl.pathname.startsWith("/onboarding"))) {
+    const loginUrl = new URL("/login", req.url);
+    loginUrl.searchParams.set("redirect_url", req.nextUrl.pathname);
+    return NextResponse.redirect(loginUrl);
   }
 });
 

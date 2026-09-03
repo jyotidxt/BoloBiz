@@ -112,17 +112,17 @@ export default function TransactionsPage() {
 
   return (
     <div style={styles.container} className="animate-fade-in">
-      <div style={styles.header}>
-        <div>
-          <h2 style={styles.title}>💰 Audit & Transaction Ledger</h2>
-          <p style={styles.subtitle}>Review logs, cash flows, credits, and manual entries</p>
+      <div className="dashboard-page-header">
+        <h2 className="page-title">💰 Audit & Transaction Ledger</h2>
+        <p className="page-subtitle">Review logs, cash flows, credits, and manual entries</p>
+        <div className="dashboard-header-action-row">
+          <button
+            onClick={() => setShowAddForm(!showAddForm)}
+            style={styles.addBtn}
+          >
+            {showAddForm ? "Close Form" : "+ Log Transaction Manual"}
+          </button>
         </div>
-        <button
-          onClick={() => setShowAddForm(!showAddForm)}
-          style={styles.addBtn}
-        >
-          {showAddForm ? "Close Form" : "+ Log Transaction Manual"}
-        </button>
       </div>
 
       {error && <div style={styles.errorAlert}>{error}</div>}

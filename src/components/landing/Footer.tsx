@@ -107,13 +107,9 @@ const styles = {
     width: "100%",
     margin: "0 auto",
     display: "grid",
-    gridTemplateColumns: "1.2fr 2.5fr",
+    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
     gap: "4rem",
     marginBottom: "4rem",
-    "@media(max-width: 900px)": {
-      gridTemplateColumns: "1fr",
-      gap: "3rem",
-    },
   },
   brandCol: {
     display: "flex",
@@ -187,9 +183,6 @@ const styles = {
     color: "#9ca3af",
     transition: "color var(--transition-fast)",
     cursor: "pointer",
-    ":hover": {
-      color: "var(--accent-pink)",
-    },
   },
   placeholderLink: {
     fontSize: "0.9rem",

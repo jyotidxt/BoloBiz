@@ -16,7 +16,7 @@
 
 <br />
 
-<img src="assets/dashboard_preview.png" alt="BoloBiz Dashboard Preview" width="100%" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.25);" />
+<img src="assets/BoloBiz.png" alt="BoloBiz Dashboard Preview" width="100%" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.25);" />
 
 </div>
 

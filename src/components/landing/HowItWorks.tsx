@@ -120,10 +120,6 @@ const styles = {
     position: "relative" as const,
     flexWrap: "wrap" as const,
     width: "100%",
-    "@media(max-width: 900px)": {
-      flexDirection: "column" as const,
-      gap: "4rem",
-    },
   },
   stepCardContainer: {
     flex: 1,
@@ -141,9 +137,6 @@ const styles = {
     height: "2px",
     background: "linear-gradient(90deg, var(--accent-purple) 0%, rgba(0,0,0,0.05) 100%)",
     zIndex: 1,
-    "@media(max-width: 900px)": {
-      display: "none",
-    },
   },
   stepCard: {
     display: "flex",

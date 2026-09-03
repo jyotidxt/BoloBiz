@@ -182,9 +182,6 @@ const styles = {
     maxWidth: "800px",
     marginBottom: "1.5rem",
     fontSize: "1.5rem",
-    "@media(max-width: 768px)": {
-      display: "none",
-    },
   },
   downArrow: {
     animation: "pulse-wave 2s infinite ease-in-out",

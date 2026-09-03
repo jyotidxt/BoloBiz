@@ -99,15 +99,12 @@ const styles = {
     marginBottom: "1.5rem",
   },
   blockquote: {
-    fontSize: "2.75rem",
+    fontSize: "2.5rem",
     fontWeight: 800,
     lineHeight: 1.25,
     color: "var(--text-primary)",
     marginBottom: "2rem",
     letterSpacing: "-1px",
-    "@media(max-width: 600px)": {
-      fontSize: "2rem",
-    },
   },
   highlight: {
     background: "var(--accent-gradient)",

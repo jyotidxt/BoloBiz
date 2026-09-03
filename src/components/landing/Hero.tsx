@@ -93,20 +93,11 @@ const styles = {
     width: "100%",
     margin: "0 auto",
     alignItems: "center",
-    "@media(max-width: 990px)": {
-      gridTemplateColumns: "1fr",
-      textAlign: "center" as const,
-      gap: "3rem",
-      paddingTop: "30px",
-    },
   },
   leftCol: {
     display: "flex",
     flexDirection: "column" as const,
     alignItems: "flex-start",
-    "@media(max-width: 990px)": {
-      alignItems: "center",
-    },
   },
   rightCol: {
     display: "flex",
@@ -140,13 +131,6 @@ const styles = {
     color: "var(--text-primary)",
     marginBottom: "1.5rem",
     textAlign: "left" as const,
-    "@media(max-width: 990px)": {
-      textAlign: "center" as const,
-      fontSize: "3.5rem",
-    },
-    "@media(max-width: 480px)": {
-      fontSize: "2.75rem",
-    },
   },
   highlight: {
     background: "var(--accent-gradient)",
@@ -161,9 +145,6 @@ const styles = {
     marginBottom: "1.5rem",
     textAlign: "left" as const,
     maxWidth: "540px",
-    "@media(max-width: 990px)": {
-      textAlign: "center" as const,
-    },
   },
   bulletsList: {
     display: "flex",
@@ -171,9 +152,6 @@ const styles = {
     gap: "0.75rem",
     marginBottom: "2.5rem",
     alignItems: "flex-start",
-    "@media(max-width: 990px)": {
-      alignItems: "center",
-    },
   },
   bulletItem: {
     display: "flex",
@@ -193,9 +171,6 @@ const styles = {
     gap: "1.25rem",
     marginBottom: "2.5rem",
     flexWrap: "wrap" as const,
-    "@media(max-width: 990px)": {
-      justifyContent: "center",
-    },
   },
   primaryBtn: {
     background: "var(--accent-gradient)",
@@ -208,10 +183,6 @@ const styles = {
     transition: "transform var(--transition-fast), box-shadow var(--transition-fast)",
     display: "inline-flex",
     alignItems: "center",
-    ":hover": {
-      transform: "translateY(-2px)",
-      boxShadow: "0 10px 25px rgba(219, 39, 119, 0.35)",
-    },
   },
   secondaryBtn: {
     background: "var(--glass-bg)",
@@ -226,10 +197,6 @@ const styles = {
     display: "inline-flex",
     alignItems: "center",
     gap: "0.5rem",
-    ":hover": {
-      background: "var(--bg-tertiary)",
-      borderColor: "var(--glass-border)",
-    },
   },
   playIcon: {
     color: "var(--accent-purple)",
@@ -239,9 +206,6 @@ const styles = {
     display: "flex",
     alignItems: "center",
     gap: "1rem",
-    "@media(max-width: 990px)": {
-      justifyContent: "center",
-    },
   },
   avatarGroup: {
     display: "flex",

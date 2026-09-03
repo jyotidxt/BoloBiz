@@ -48,12 +48,20 @@ export interface BusinessAnalyticsSummary {
   insights: Insight[];
 }
 
+export function getTimezoneOffsetMs(timeZone: string, date: Date = new Date()): number {
+  try {
+    const utcDate = new Date(date.toLocaleString("en-US", { timeZone: "UTC" }));
+    const tzDate = new Date(date.toLocaleString("en-US", { timeZone }));
+    return tzDate.getTime() - utcDate.getTime();
+  } catch {
+    return 5.5 * 60 * 60 * 1000; // Fallback to +05:30 Asia/Kolkata
+  }
+}
+
 /**
  * Calculates correct date boundaries in the target timezone converted to UTC for database querying.
  */
-export function getDateRangesInTimezone(timezone: string = "Asia/Kolkata") {
-  const now = new Date();
-  
+export function getDateRangesInTimezone(timezone: string = "Asia/Kolkata", baseDate: Date = new Date()) {
   let formattedParts;
   try {
     formattedParts = new Intl.DateTimeFormat("en-US", {
@@ -64,11 +72,9 @@ export function getDateRangesInTimezone(timezone: string = "Asia/Kolkata") {
       hour: "numeric",
       minute: "numeric",
       second: "numeric",
-      fractionalSecondDigits: 3,
       hour12: false,
-    }).formatToParts(now);
-  } catch (e) {
-    // Fallback to Asia/Kolkata if invalid timezone string is provided
+    }).formatToParts(baseDate);
+  } catch {
     formattedParts = new Intl.DateTimeFormat("en-US", {
       timeZone: "Asia/Kolkata",
       year: "numeric",
@@ -77,67 +83,22 @@ export function getDateRangesInTimezone(timezone: string = "Asia/Kolkata") {
       hour: "numeric",
       minute: "numeric",
       second: "numeric",
-      fractionalSecondDigits: 3,
       hour12: false,
-    }).formatToParts(now);
+    }).formatToParts(baseDate);
   }
 
-  const getPart = (type: string) => parseInt(formattedParts.find(p => p.type === type)?.value || "0");
-  
+  const getPart = (type: string) => parseInt(formattedParts.find((p) => p.type === type)?.value || "0");
+
   const year = getPart("year");
   const month = getPart("month") - 1; // 0-indexed
   const day = getPart("day");
-  const hour = getPart("hour");
-  const minute = getPart("minute");
-  const second = getPart("second");
-  const millisecond = getPart("fractionalSecond");
 
-  // Helper to resolve the correct UTC date matching local date/time parameters in the target timezone
+  const offsetMs = getTimezoneOffsetMs(timezone, baseDate);
+
+  // Helper to resolve the correct UTC date from local date components using Date.UTC
   const getUtcDate = (yr: number, mo: number, dy: number, hr: number, mi: number, se: number, ms: number) => {
-    const pad = (n: number, l = 2) => String(n).padStart(l, "0");
-    const localIso = `${yr}-${pad(mo + 1)}-${pad(dy)}T${pad(hr)}:${pad(mi)}:${pad(se)}.${pad(ms, 3)}`;
-    const guessUtc = new Date(localIso + "Z");
-
-    const formatterG = new Intl.DateTimeFormat("en-US", {
-      timeZone: timezone,
-      year: "numeric",
-      month: "numeric",
-      day: "numeric",
-      hour: "numeric",
-      minute: "numeric",
-      second: "numeric",
-      hour12: false,
-    });
-    
-    let partsG;
-    try {
-      partsG = formatterG.formatToParts(guessUtc);
-    } catch {
-      partsG = new Intl.DateTimeFormat("en-US", {
-        timeZone: "Asia/Kolkata",
-        year: "numeric",
-        month: "numeric",
-        day: "numeric",
-        hour: "numeric",
-        minute: "numeric",
-        second: "numeric",
-        hour12: false,
-      }).formatToParts(guessUtc);
-    }
-
-    const getPartG = (type: string) => parseInt(partsG.find(p => p.type === type)?.value || "0");
-    const gYr = getPartG("year");
-    const gMo = getPartG("month") - 1;
-    const gDy = getPartG("day");
-    const gHr = getPartG("hour");
-    const gMi = getPartG("minute");
-    const gSe = getPartG("second");
-    
-    const localTimeMs = Date.UTC(yr, mo, dy, hr, mi, se, ms);
-    const formattedTimeMs = Date.UTC(gYr, gMo, gDy, gHr, gMi, gSe, ms);
-    const offsetMs = formattedTimeMs - localTimeMs;
-    
-    return new Date(guessUtc.getTime() - offsetMs);
+    const localUtcMs = Date.UTC(yr, mo, dy, hr, mi, se, ms);
+    return new Date(localUtcMs - offsetMs);
   };
 
   const todayStart = getUtcDate(year, month, day, 0, 0, 0, 0);
@@ -147,22 +108,14 @@ export function getDateRangesInTimezone(timezone: string = "Asia/Kolkata") {
   const yesterdayEnd = getUtcDate(year, month, day - 1, 23, 59, 59, 999);
 
   // Find start of week (Monday)
-  const dayDate = new Date(Date.UTC(year, month, day));
-  const dayOfWeek = dayDate.getUTCDay(); // Sunday=0, Monday=1...
+  const localDayDate = new Date(Date.UTC(year, month, day));
+  const dayOfWeek = localDayDate.getUTCDay(); // Sunday=0, Monday=1...
   const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
   const thisWeekStart = getUtcDate(year, month, day - daysSinceMonday, 0, 0, 0, 0);
 
   const thisMonthStart = getUtcDate(year, month, 1, 0, 0, 0, 0);
-
-  let prevYear = year;
-  let prevMonth = month - 1;
-  if (prevMonth < 0) {
-    prevMonth = 11;
-    prevYear -= 1;
-  }
-  const prevMonthStart = getUtcDate(prevYear, prevMonth, 1, 0, 0, 0, 0);
-  const lastDayOfPrevMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
-  const prevMonthEnd = getUtcDate(prevYear, prevMonth, lastDayOfPrevMonth, 23, 59, 59, 999);
+  const prevMonthStart = getUtcDate(year, month - 1, 1, 0, 0, 0, 0);
+  const prevMonthEnd = getUtcDate(year, month, 0, 23, 59, 59, 999);
 
   return {
     todayStart,

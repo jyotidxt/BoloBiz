@@ -91,17 +91,17 @@ export default function CustomersPage() {
 
   return (
     <div style={styles.container} className="animate-fade-in">
-      <div style={styles.header}>
-        <div>
-          <h2 style={styles.title}>👥 Customers (Khata Book)</h2>
-          <p style={styles.subtitle}>Manage customer profiles and pending balances</p>
+      <div className="dashboard-page-header">
+        <h2 className="page-title">👥 Customers (Khata Book)</h2>
+        <p className="page-subtitle">Manage customer profiles and pending balances</p>
+        <div className="dashboard-header-action-row">
+          <button
+            onClick={() => setShowAddForm(!showAddForm)}
+            style={styles.addBtn}
+          >
+            {showAddForm ? "Close Form" : "+ Add New Customer"}
+          </button>
         </div>
-        <button
-          onClick={() => setShowAddForm(!showAddForm)}
-          style={styles.addBtn}
-        >
-          {showAddForm ? "Close Form" : "+ Add New Customer"}
-        </button>
       </div>
 
       {error && <div style={styles.errorAlert}>{error}</div>}
@@ -319,9 +319,6 @@ const styles = {
   },
   tableRow: {
     borderBottom: "1px solid var(--glass-border)",
-    ":hover": {
-      background: "var(--bg-tertiary)",
-    },
   },
   td: {
     padding: "1.2rem 1rem",

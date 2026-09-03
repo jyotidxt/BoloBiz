@@ -155,17 +155,17 @@ export default function InventoryPage() {
 
   return (
     <div style={styles.container} className="animate-fade-in">
-      <div style={styles.header}>
-        <div>
-          <h2 style={styles.title}>📦 Product Inventory Catalog</h2>
-          <p style={styles.subtitle}>Track product prices, margins, stock levels, and threshold warnings</p>
+      <div className="dashboard-page-header">
+        <h2 className="page-title">📦 Product Inventory Catalog</h2>
+        <p className="page-subtitle">Track product prices, margins, stock levels, and threshold warnings</p>
+        <div className="dashboard-header-action-row">
+          <button
+            onClick={() => setShowAddForm(!showAddForm)}
+            style={styles.addBtn}
+          >
+            {showAddForm ? "Close Form" : "+ Create Product Card"}
+          </button>
         </div>
-        <button
-          onClick={() => setShowAddForm(!showAddForm)}
-          style={styles.addBtn}
-        >
-          {showAddForm ? "Close Form" : "+ Create Product Card"}
-        </button>
       </div>
 
       {error && <div style={styles.errorAlert}>{error}</div>}
@@ -463,9 +463,6 @@ const styles = {
   },
   tableRow: {
     borderBottom: "1px solid var(--glass-border)",
-    ":hover": {
-      background: "var(--bg-tertiary)",
-    },
   },
   td: {
     padding: "1.2rem 1rem",

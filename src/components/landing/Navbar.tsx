@@ -52,8 +52,8 @@ export default function Navbar() {
           <span style={styles.logoText}>BoloBiz</span>
         </Link>
 
-        {/* Desktop Nav Links */}
-        <nav style={styles.navDesktop}>
+        {/* Desktop Navigation Links */}
+        <nav className="nav-desktop-only" style={styles.navDesktop}>
           <a href="#hero" style={styles.navLink}>{t("nav.home")}</a>
           <a href="#features" style={styles.navLink}>{t("nav.features")}</a>
           <a href="#how-it-works" style={styles.navLink}>{t("nav.howItWorks")}</a>
@@ -61,8 +61,8 @@ export default function Navbar() {
           <a href="#about" style={styles.navLink}>{t("nav.about")}</a>
         </nav>
 
-        {/* Desktop CTA & Controls */}
-        <div style={styles.rightNav}>
+        {/* Right CTA / Language Bar */}
+        <div className="nav-desktop-only" style={styles.rightNav}>
           {/* Custom Accessible Dropdown */}
           <div style={styles.dropdownWrapper} ref={dropdownRef}>
             <button
@@ -116,6 +116,7 @@ export default function Navbar() {
         {/* Mobile menu trigger */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="nav-mobile-hamburger"
           style={styles.mobileMenuTrigger}
           aria-label="Toggle Navigation Menu"
         >
@@ -127,7 +128,7 @@ export default function Navbar() {
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="glass-panel animate-fade-in" style={styles.mobileDrawer}>
+        <div className="glass-panel animate-fade-in nav-mobile-drawer" style={styles.mobileDrawer}>
           <nav style={styles.mobileNav}>
             <a href="#hero" onClick={() => setMobileMenuOpen(false)} style={styles.mobileNavLink}>{t("nav.home")}</a>
             <a href="#features" onClick={() => setMobileMenuOpen(false)} style={styles.mobileNavLink}>{t("nav.features")}</a>
@@ -224,12 +225,8 @@ const styles = {
     letterSpacing: "-0.5px",
   },
   navDesktop: {
-    display: "flex",
     gap: "2rem",
     alignItems: "center",
-    "@media(max-width: 900px)": {
-      display: "none",
-    },
   },
   navLink: {
     fontSize: "0.95rem",
@@ -237,17 +234,10 @@ const styles = {
     fontWeight: 600,
     transition: "color var(--transition-fast)",
     cursor: "pointer",
-    ":hover": {
-      color: "var(--accent-pink)",
-    },
   },
   rightNav: {
-    display: "flex",
     alignItems: "center",
     gap: "1.25rem",
-    "@media(max-width: 900px)": {
-      display: "none",
-    },
   },
   dropdownWrapper: {
     position: "relative" as const,
@@ -266,14 +256,6 @@ const styles = {
     color: "var(--text-primary)",
     transition: "all var(--transition-fast)",
     outline: "none",
-    ":hover": {
-      background: "var(--bg-tertiary)",
-      borderColor: "var(--glass-border)",
-    },
-    ":focus-visible": {
-      border: "1px solid var(--accent-purple)",
-      boxShadow: "0 0 0 3px rgba(124, 58, 237, 0.25)",
-    },
   },
   langTextLabel: {
     minWidth: "48px",
@@ -313,14 +295,6 @@ const styles = {
     transition: "all var(--transition-fast)",
     outline: "none",
     textAlign: "left" as const,
-    ":hover": {
-      background: "var(--bg-tertiary)",
-      color: "var(--text-primary)",
-    },
-    ":focus-visible": {
-      background: "rgba(124, 58, 237, 0.05)",
-      color: "var(--accent-purple)",
-    },
   },
   dropdownItemActive: {
     background: "rgba(124, 58, 237, 0.06)",
@@ -333,10 +307,6 @@ const styles = {
     padding: "0.5rem 1rem",
     borderRadius: "20px",
     transition: "all var(--transition-fast)",
-    ":hover": {
-      background: "var(--bg-tertiary)",
-      color: "var(--text-primary)",
-    },
   },
   startBtn: {
     background: "var(--accent-gradient)",
@@ -347,10 +317,6 @@ const styles = {
     borderRadius: "20px",
     boxShadow: "0 4px 15px rgba(219, 39, 119, 0.25)",
     transition: "transform var(--transition-fast), box-shadow var(--transition-fast)",
-    ":hover": {
-      transform: "translateY(-1px)",
-      boxShadow: "0 6px 20px rgba(219, 39, 119, 0.35)",
-    },
   },
   mobileMenuTrigger: {
     display: "none",
@@ -363,9 +329,6 @@ const styles = {
     cursor: "pointer",
     padding: 0,
     zIndex: 101,
-    "@media(max-width: 900px)": {
-      display: "flex",
-    },
   },
   bar: {
     width: "100%",
@@ -387,9 +350,6 @@ const styles = {
     zIndex: 99,
     overflowY: "auto" as const,
     boxShadow: "0 20px 40px rgba(0,0,0,0.15)",
-    "@media(min-width: 901px)": {
-      display: "none",
-    },
   },
   mobileNav: {
     display: "flex",

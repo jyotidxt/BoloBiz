@@ -38,6 +38,7 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
+      className="theme-toggle-btn"
       style={styles.toggleBtn}
       aria-label="Toggle dark/light theme"
       title={`Switch to ${theme === "light" ? "Dark" : "Light"} Mode`}
@@ -65,10 +66,6 @@ const styles = {
     justifyContent: "center",
     zIndex: 9999,
     transition: "transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.3s ease",
-    ":hover": {
-      transform: "scale(1.1)",
-      background: "var(--bg-tertiary)",
-    },
   },
   icon: {
     fontSize: "1.4rem",

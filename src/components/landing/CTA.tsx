@@ -63,11 +63,6 @@ const styles = {
     position: "relative" as const,
     overflow: "hidden",
     flexWrap: "wrap" as const,
-    "@media(max-width: 900px)": {
-      flexDirection: "column" as const,
-      textAlign: "center" as const,
-      padding: "3rem 2rem",
-    },
   },
   leftVisual: {
     display: "flex",
@@ -89,9 +84,6 @@ const styles = {
   centerText: {
     flex: 1,
     textAlign: "left" as const,
-    "@media(max-width: 900px)": {
-      textAlign: "center" as const,
-    },
   },
   title: {
     fontSize: "2.25rem",
@@ -99,9 +91,6 @@ const styles = {
     color: "#ffffff",
     marginBottom: "0.5rem",
     letterSpacing: "-0.5px",
-    "@media(max-width: 600px)": {
-      fontSize: "1.75rem",
-    },
   },
   subtitle: {
     fontSize: "1.1rem",
@@ -124,10 +113,6 @@ const styles = {
     display: "inline-flex",
     alignItems: "center",
     gap: "0.5rem",
-    ":hover": {
-      transform: "translateY(-1px)",
-      boxShadow: "0 8px 25px rgba(0,0,0,0.1)",
-    },
   },
   arrow: {
     fontSize: "1.1rem",

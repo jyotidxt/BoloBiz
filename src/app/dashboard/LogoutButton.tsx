@@ -25,8 +25,5 @@ const styles = {
     transition: "all 0.2s ease",
     textAlign: "center" as const,
     fontSize: "0.9rem",
-    ":hover": {
-      background: "rgba(239, 68, 68, 0.15)",
-    },
   },
 };

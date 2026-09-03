@@ -354,13 +354,11 @@ export default function AssistantPage() {
 
   return (
     <div style={styles.container} className="animate-fade-in">
-      <div style={styles.headerRow}>
-        <div>
-          <h2 style={styles.title}>🎙️ {title}</h2>
-          <p style={styles.subtitle}>{subtitle}</p>
-        </div>
-
-        <div style={styles.rightHeader}>
+      {/* Centered Assistant Header */}
+      <div className="dashboard-page-header">
+        <h2 className="page-title">🎙️ {title}</h2>
+        <p className="page-subtitle">{subtitle}</p>
+        <div className="dashboard-header-action-row">
           <button onClick={handleNewChat} style={styles.newChatBtn} title="Start a fresh conversation">
             {newChatBtnText}
           </button>
@@ -651,7 +649,7 @@ export default function AssistantPage() {
         {voiceState === "LISTENING" && liveTranscript && (
           <div style={styles.liveTranscriptCard}>
             <span style={styles.liveTranscriptLabel}>🎙️ {language === "hi" ? "लाइव अनुवाद:" : "Live transcript:"}</span>
-            <p style={styles.liveTranscriptText}>"{liveTranscript}"</p>
+            <p style={styles.liveTranscriptText}>&quot;{liveTranscript}&quot;</p>
           </div>
         )}
 
@@ -844,9 +842,6 @@ const styles = {
     cursor: "pointer",
     boxShadow: "0 10px 25px rgba(124, 58, 237, 0.25)",
     color: "#fff",
-    ":hover": {
-      transform: "scale(1.03)",
-    },
   },
   suggestions: {
     display: "flex",
@@ -865,11 +860,6 @@ const styles = {
     cursor: "pointer",
     boxShadow: "0 2px 6px var(--glass-shadow)",
     transition: "all 0.2s ease",
-    ":hover": {
-      borderColor: "var(--accent-purple)",
-      background: "rgba(124, 58, 237, 0.05)",
-      color: "var(--accent-purple)",
-    },
   },
   messagesList: {
     display: "flex",
@@ -937,9 +927,6 @@ const styles = {
     fontSize: "0.85rem",
     color: "var(--text-secondary)",
     padding: "0 0.25rem",
-    ":hover": {
-      color: "var(--accent-purple)",
-    },
   },
   receiptCard: {
     marginTop: "0.75rem",

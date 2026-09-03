@@ -293,11 +293,8 @@ const styles = {
   },
   splitLayout: {
     display: "grid",
-    gridTemplateColumns: "1.3fr 1fr",
+    gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
     gap: "2.5rem",
-    "@media(max-width: 900px)": {
-      gridTemplateColumns: "1fr",
-    },
   },
   chatCard: {
     height: "460px",
@@ -375,11 +372,6 @@ const styles = {
     cursor: "pointer",
     transition: "all 0.2s ease",
     boxShadow: "0 2px 6px rgba(0,0,0,0.02)",
-    ":hover": {
-      borderColor: "var(--accent-purple)",
-      background: "rgba(124, 58, 237, 0.06)",
-      color: "var(--accent-purple)",
-    },
   },
   widgetCard: {
     borderRadius: "16px",

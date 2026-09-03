@@ -165,11 +165,9 @@ export default function DashboardHome() {
   return (
     <div style={styles.container} className="animate-fade-in">
       {/* Overview Greeting */}
-      <div style={styles.headerRow}>
-        <div>
-          <h2 style={styles.title}>Dashboard Overview</h2>
-          <p style={styles.subtitle}>Here is what requires your attention today.</p>
-        </div>
+      <div className="dashboard-page-header">
+        <h2 className="page-title">📊 Dashboard Overview</h2>
+        <p className="page-subtitle">Here is what requires your attention today.</p>
         <div style={styles.timezoneBadge}>🕒 {stats.timezone}</div>
       </div>
 
@@ -237,21 +235,21 @@ export default function DashboardHome() {
                   <span style={styles.stepNumMini}>1</span>
                   <div>
                     <h4 style={styles.stepHeadingMini}>Add Products</h4>
-                    <p style={styles.stepTextMini}>Say: <span style={styles.codeTextMini}>"Add Maggi price 20 rupees"</span></p>
+                    <p style={styles.stepTextMini}>Say: <span style={styles.codeTextMini}>&quot;Add Maggi price 20 rupees&quot;</span></p>
                   </div>
                 </div>
                 <div style={styles.compactStepRow}>
                   <span style={styles.stepNumMini}>2</span>
                   <div>
                     <h4 style={styles.stepHeadingMini}>Add Customers</h4>
-                    <p style={styles.stepTextMini}>Say: <span style={styles.codeTextMini}>"Create Ramesh customer"</span></p>
+                    <p style={styles.stepTextMini}>Say: <span style={styles.codeTextMini}>&quot;Create Ramesh customer&quot;</span></p>
                   </div>
                 </div>
                 <div style={styles.compactStepRow}>
                   <span style={styles.stepNumMini}>3</span>
                   <div>
                     <h4 style={styles.stepHeadingMini}>Log Credit/Sales</h4>
-                    <p style={styles.stepTextMini}>Say: <span style={styles.codeTextMini}>"Ramesh ko 500 udhaar diye"</span></p>
+                    <p style={styles.stepTextMini}>Say: <span style={styles.codeTextMini}>&quot;Ramesh ko 500 udhaar diye&quot;</span></p>
                   </div>
                 </div>
               </div>
@@ -277,7 +275,7 @@ export default function DashboardHome() {
                   {stats.salesChangePercent >= 0 ? `+${stats.salesChangePercent}%` : `${stats.salesChangePercent}%`}
                 </span>
               </div>
-              <div style={styles.metricLabel}>Today's Sales</div>
+              <div style={styles.metricLabel}>Today&apos;s Sales</div>
               <div style={styles.metricValue}>{formatCurrency(stats.salesToday)}</div>
               <div style={styles.metricSub}>{stats.salesTodayCount} transaction(s) logged</div>
             </div>
@@ -287,7 +285,7 @@ export default function DashboardHome() {
               <div style={styles.metricHeader}>
                 <span style={styles.metricIcon}>💸</span>
               </div>
-              <div style={styles.metricLabel}>Today's Expenses</div>
+              <div style={styles.metricLabel}>Today&apos;s Expenses</div>
               <div style={styles.metricValue}>{formatCurrency(stats.expensesToday)}</div>
               <div style={styles.metricSub}>Weekly: {formatCurrency(stats.expensesThisWeek)}</div>
             </div>
@@ -331,7 +329,7 @@ export default function DashboardHome() {
           </div>
 
           {/* Main Content Grid */}
-          <div style={styles.mainColumns}>
+          <div className="dashboard-main-columns">
             
             {/* Left column: Proactive Insights & 7-Day Trend */}
             <div style={styles.leftColumn}>
@@ -485,9 +483,9 @@ export default function DashboardHome() {
                   Simply type or click the microphone to ask questions about your ledger:
                 </p>
                 <div style={styles.queryExamples}>
-                  <div style={styles.queryChip}>"Who owes me the most money?"</div>
-                  <div style={styles.queryChip}>"Maggi stock kitni bachi hai?"</div>
-                  <div style={styles.queryChip}>"Kya koi product stock out hai?"</div>
+                  <div style={styles.queryChip}>&quot;Who owes me the most money?&quot;</div>
+                  <div style={styles.queryChip}>&quot;Maggi stock kitni bachi hai?&quot;</div>
+                  <div style={styles.queryChip}>&quot;Kya koi product stock out hai?&quot;</div>
                 </div>
                 <Link href="/dashboard/assistant" style={styles.assistantWidgetLink}>
                   🎙️ Start Talking now
@@ -663,15 +661,6 @@ const styles = {
     background: "rgba(255, 255, 255, 0.03)",
     borderRadius: "12px",
     border: "1px solid var(--glass-border)",
-  },
-  mainColumns: {
-    display: "grid",
-    gridTemplateColumns: "1.6fr 1fr",
-    gap: "1.5rem",
-    alignItems: "start",
-    "@media(max-width: 1024px)": {
-      gridTemplateColumns: "1fr",
-    },
   },
   leftColumn: {
     display: "flex",

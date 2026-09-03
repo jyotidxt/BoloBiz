@@ -310,3 +310,4 @@ async function handleOfflineMockResponse(message: string, businessId: string, co
     toolCall: null,
   };
 }
+

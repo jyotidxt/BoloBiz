@@ -273,20 +273,12 @@ const styles = {
     gridTemplateColumns: "1fr 1.8fr",
     gap: "4rem",
     alignItems: "center",
-    "@media(max-width: 990px)": {
-      gridTemplateColumns: "1fr",
-      gap: "3rem",
-    },
   },
   leftCol: {
     display: "flex",
     flexDirection: "column" as const,
     alignItems: "flex-start",
     textAlign: "left" as const,
-    "@media(max-width: 990px)": {
-      alignItems: "center",
-      textAlign: "center" as const,
-    },
   },
   badgePill: {
     display: "inline-block",
@@ -367,10 +359,6 @@ const styles = {
   windowLayout: {
     display: "flex",
     height: "460px",
-    "@media(max-width: 600px)": {
-      height: "auto",
-      flexDirection: "column" as const,
-    },
   },
   sidebar: {
     width: "160px",
@@ -379,11 +367,6 @@ const styles = {
     padding: "1.25rem 0.85rem",
     display: "flex",
     flexDirection: "column" as const,
-    "@media(max-width: 600px)": {
-      width: "100%",
-      borderRight: "none",
-      borderBottom: "1px solid rgba(0,0,0,0.05)",
-    },
   },
   sidebarBrand: {
     fontSize: "1.1rem",
@@ -488,9 +471,6 @@ const styles = {
     display: "grid",
     gridTemplateColumns: "1fr 1.2fr",
     gap: "1rem",
-    "@media(max-width: 768px)": {
-      gridTemplateColumns: "1fr",
-    },
   },
   panel: {
     border: "1px solid var(--glass-border)",
